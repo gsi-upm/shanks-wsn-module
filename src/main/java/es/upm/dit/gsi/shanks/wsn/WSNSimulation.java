@@ -24,12 +24,10 @@ import es.upm.dit.gsi.shanks.exception.ShanksException;
 import es.upm.dit.gsi.shanks.model.scenario.Scenario;
 
 /**
- * Project: wsn
- * File: es.upm.dit.gsi.shanks.wsn.WSNSimulation.java
+ * Project: wsn File: es.upm.dit.gsi.shanks.wsn.WSNSimulation.java
  * 
- * Grupo de Sistemas Inteligentes
- * Departamento de Ingeniería de Sistemas Telemáticos
- * Universidad Politécnica de Madrid (UPM)
+ * Grupo de Sistemas Inteligentes Departamento de Ingeniería de Sistemas
+ * Telemáticos Universidad Politécnica de Madrid (UPM)
  * 
  * @author Álvaro Carrera Barroso
  * @email a.carrera@gsi.dit.upm.es
@@ -47,7 +45,7 @@ public class WSNSimulation extends ShanksSimulation {
 
 	/**
 	 * Constructor
-	 *
+	 * 
 	 * @param seed
 	 * @param scenarioClass
 	 * @param scenarioID
@@ -58,6 +56,26 @@ public class WSNSimulation extends ShanksSimulation {
 	public WSNSimulation(long seed, Class<? extends Scenario> scenarioClass, String scenarioID, String initialState,
 			Properties properties) throws ShanksException {
 		super(seed, scenarioClass, scenarioID, initialState, properties);
+		// TODO Auto-generated constructor stub
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see es.upm.dit.gsi.shanks.ShanksSimulation#addSteppables()
+	 */
+	@Override
+	public void addSteppables() {
+		// TODO Auto-generated constructor stub
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see es.upm.dit.gsi.shanks.ShanksSimulation#registerShanksAgents()
+	 */
+	@Override
+	public void registerShanksAgents() throws ShanksException {
 		// TODO Auto-generated constructor stub
 	}
 

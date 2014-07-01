@@ -17,13 +17,18 @@
  */
 package es.upm.dit.gsi.shanks.wsn;
 
+import java.util.Properties;
+
+import es.upm.dit.gsi.shanks.exception.ShanksException;
+import es.upm.dit.gsi.shanks.model.scenario.Scenario;
+import es.upm.dit.gsi.shanks.wsn.model.scenario.WSNScenario;
+import es.upm.dit.gsi.shanks.wsn.model.scenario.WSNScenarioStates;
+
 /**
- * Project: wsn
- * File: es.upm.dit.gsi.shanks.wsn.WSNSimulationLauncher.java
+ * Project: wsn File: es.upm.dit.gsi.shanks.wsn.WSNSimulationLauncher.java
  * 
- * Grupo de Sistemas Inteligentes
- * Departamento de Ingeniería de Sistemas Telemáticos
- * Universidad Politécnica de Madrid (UPM)
+ * Grupo de Sistemas Inteligentes Departamento de Ingeniería de Sistemas
+ * Telemáticos Universidad Politécnica de Madrid (UPM)
  * 
  * @author Álvaro Carrera Barroso
  * @email a.carrera@gsi.dit.upm.es
@@ -36,18 +41,26 @@ public class WSNSimulationLauncher {
 
 	/**
 	 * Constructor
-	 *
+	 * 
 	 */
 	public WSNSimulationLauncher() {
-		// TODO Auto-generated constructor stub
 	}
 
 	/**
 	 * @param args
+	 * @throws ShanksException
 	 */
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
+	public static void main(String[] args) throws ShanksException {
+		Properties scenarioProperties = new Properties();
+		scenarioProperties.put(Scenario.SIMULATION_GUI, Scenario.SIMULATION_2D);
+		scenarioProperties.put(WSNScenario.SENSORS, "100");
+		scenarioProperties.put(WSNScenario.FIELD_WIDTH, "800");
+		scenarioProperties.put(WSNScenario.FIELD_HEIGHT, "800");
+		scenarioProperties.put(WSNScenario.CLUSTERS, "10");
+		WSNSimulation sim = new WSNSimulation(System.currentTimeMillis(), WSNScenario.class, "WSNScenario",
+				WSNScenarioStates.SUNNY.toString(), scenarioProperties);
+		WSNSimulation2DGUI gui = new WSNSimulation2DGUI(sim);
+		gui.start();
 	}
 
 }

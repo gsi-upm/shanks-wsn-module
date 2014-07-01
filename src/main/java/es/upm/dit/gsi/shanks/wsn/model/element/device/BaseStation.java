@@ -24,8 +24,8 @@ import es.upm.dit.gsi.shanks.exception.ShanksException;
 import es.upm.dit.gsi.shanks.model.element.device.Device;
 
 /**
- * Project: wsn File:
- * es.upm.dit.gsi.shanks.wsn.model.element.device.SensorNode.java
+ * Project: shanks-wsn-module File:
+ * es.upm.dit.gsi.shanks.wsn.model.element.device.BaseStation.java
  * 
  * Grupo de Sistemas Inteligentes Departamento de Ingeniería de Sistemas
  * Telemáticos Universidad Politécnica de Madrid (UPM)
@@ -33,15 +33,13 @@ import es.upm.dit.gsi.shanks.model.element.device.Device;
  * @author Álvaro Carrera Barroso
  * @email a.carrera@gsi.dit.upm.es
  * @twitter @alvarocarrera
- * @date 27/06/2014
+ * @date 30/06/2014
  * @version 0.1
  * 
  */
-public class SensorNode extends Device {
+public class BaseStation extends Device {
 
 	private Double2D position;
-	
-	private boolean isClusterHead;
 
 	/**
 	 * Constructor
@@ -50,12 +48,10 @@ public class SensorNode extends Device {
 	 * @param initialState
 	 * @param isGateway
 	 * @param logger
-	 * @param position
 	 */
-	public SensorNode(String id, String initialState, boolean isGateway, Logger logger, Double2D position) {
+	public BaseStation(String id, String initialState, boolean isGateway, Logger logger, Double2D position) {
 		super(id, initialState, isGateway, logger);
 		this.setPosition(position);
-		this.setClusterHead(false);
 	}
 
 	/*
@@ -117,20 +113,6 @@ public class SensorNode extends Device {
 	 */
 	public void setPosition(Double2D position) {
 		this.position = position;
-	}
-
-	/**
-	 * @return the isClusterHead
-	 */
-	public boolean isClusterHead() {
-		return isClusterHead;
-	}
-
-	/**
-	 * @param isClusterHead the isClusterHead to set
-	 */
-	public void setClusterHead(boolean isClusterHead) {
-		this.isClusterHead = isClusterHead;
 	}
 
 }
