@@ -29,7 +29,7 @@ import sim.portrayal.Portrayal;
 import sim.portrayal.SimpleInspector;
 import es.upm.dit.gsi.shanks.model.element.device.Device;
 import es.upm.dit.gsi.shanks.model.element.device.portrayal.Device2DPortrayal;
-import es.upm.dit.gsi.shanks.wsn.model.element.device.SensorNode;
+import es.upm.dit.gsi.shanks.wsn.model.element.device.ZigBeeSensorNode;
 
 /**
  * @author a.carrera
@@ -58,16 +58,23 @@ public class SensorNode2DPortrayal extends Device2DPortrayal implements Portraya
 		// *******CODE TO SHOW CIRCLES AS DEVICES**
 		// ****************************************
 
-		SensorNode sensorNode = (SensorNode) object;
+		ZigBeeSensorNode sensorNode = (ZigBeeSensorNode) object;
+		String id = sensorNode.getID();
+		id = id.split("-")[1];
 		double width = 10;
 		double height = 10;
 
-		if (sensorNode.isClusterHead()) {
+		if (sensorNode.isDetecting()) {
+			graphics.setColor(Color.blue);
+		} else if (sensorNode.isZigBeeRouter()) {
 			graphics.setColor(Color.gray);
-			width = 20;
-			height = 20;
 		} else {
 			graphics.setColor(Color.green);
+		}
+
+		if (sensorNode.isZigBeeRouter()) {
+			width = 20;
+			height = 20;
 		}
 
 		// Draw the devices
@@ -79,10 +86,10 @@ public class SensorNode2DPortrayal extends Device2DPortrayal implements Portraya
 
 		// Draw the devices ID ID
 		graphics.setColor(Color.black);
-		if (sensorNode.isClusterHead()) {
-			graphics.drawString("CH-" + sensorNode.getID(), x - 3, y);
+		if (sensorNode.isZigBeeRouter()) {
+			graphics.drawString("CH-" + id, x - 3, y);
 		} else {
-			graphics.drawString(sensorNode.getID(), x - 3, y);
+			graphics.drawString(id, x - 3, y);
 		}
 
 	}

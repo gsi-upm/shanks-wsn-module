@@ -31,14 +31,14 @@ import es.upm.dit.gsi.shanks.model.event.failiure.Failure;
 import es.upm.dit.gsi.shanks.model.scenario.Scenario;
 import es.upm.dit.gsi.shanks.model.scenario.portrayal.Scenario2DPortrayal;
 import es.upm.dit.gsi.shanks.model.scenario.portrayal.Scenario3DPortrayal;
-import es.upm.dit.gsi.shanks.wsn.model.element.device.BaseStation;
-import es.upm.dit.gsi.shanks.wsn.model.element.device.SensorNode;
+import es.upm.dit.gsi.shanks.wsn.model.element.device.ZigBeeCoordinatorNode;
+import es.upm.dit.gsi.shanks.wsn.model.element.device.ZigBeeSensorNode;
 import es.upm.dit.gsi.shanks.wsn.model.element.link.RoutePathLink;
 import es.upm.dit.gsi.shanks.wsn.model.element.link.WifiLink;
 import es.upm.dit.gsi.shanks.wsn.model.scenario.portrayal.WSNScenario2DPortrayal;
-import es.upm.dit.gsi.shanks.wsn.utils.Dijkstra;
-import es.upm.dit.gsi.shanks.wsn.utils.Edge;
-import es.upm.dit.gsi.shanks.wsn.utils.Vertex;
+import es.upm.dit.gsi.shanks.wsn.utils.dijkstra.Dijkstra;
+import es.upm.dit.gsi.shanks.wsn.utils.dijkstra.Edge;
+import es.upm.dit.gsi.shanks.wsn.utils.dijkstra.Vertex;
 
 /**
  * Project: wsn File: es.upm.dit.gsi.shanks.wsn.model.scenario.WSNScenario.java
@@ -59,11 +59,14 @@ public class WSNScenario extends Scenario {
 	public static final String FIELD_WIDTH = "FieldWidth";
 	public static final String FIELD_HEIGHT = "FieldHeight";
 	public static final String CLUSTERS = "Clusters";
+	public static final String PERCEPTION_RANGE = "PerceptionRange";
+	public static final String TARGET_SPEED = "Speed";
+	public static final String TARGETS = "Targets";
 
 	private int sensorsNum;
 	private int height;
 	private int width;
-	private List<SensorNode> clusterheads;
+	private List<ZigBeeSensorNode> clusterheads;
 
 	/**
 	 * Constructor
@@ -138,26 +141,46 @@ public class WSNScenario extends Scenario {
 		String clustersString = properties.getProperty(CLUSTERS);
 		int clusters = new Integer(clustersString);
 
-		Double2D pos = new Double2D(width / 2, -50);
-		BaseStation base = new BaseStation("base-station", "OK", false, logger, pos);
+		// Base Station on the top
+		Double2D pos = new Double2D(width / 2, 0);
+
+		// Base Station in the middle
+		// Double2D pos = new Double2D(width / 2, height / 2);
+
+		ZigBeeCoordinatorNode base = new ZigBeeCoordinatorNode("base-station", "OK", false, logger, pos);
 		this.addNetworkElement(base);
 
-		List<SensorNode> sensors = new ArrayList<SensorNode>();
+		List<ZigBeeSensorNode> sensors = new ArrayList<ZigBeeSensorNode>();
 
 		// Create sensors nodes
+		boolean[][] map = new boolean[width][height];
 		for (int i = 0; i < sensorsNum; i++) {
-			pos = new Double2D(rnd.nextInt(width), rnd.nextInt(height));
-			SensorNode node = new SensorNode("sensor-" + i, "OK", false, logger, pos);
+			int w = rnd.nextInt(width);
+			int h = rnd.nextInt(height);
+			if (map[w][h] == false) {
+				pos = new Double2D(w, h);
+				map[w][h] = true;
+			} else {
+				do {
+					w = rnd.nextInt(width);
+					h = rnd.nextInt(height);
+					if (map[w][h] == false) {
+						pos = new Double2D(w, h);
+						map[w][h] = true;
+					}
+				} while (map[h][w] == true);
+			}
+			ZigBeeSensorNode node = new ZigBeeSensorNode("sensor-" + i, "OK", false, logger, pos);
 			sensors.add(node);
 			this.addNetworkElement(node);
 		}
 
-		// Choose cluster heads
-		List<SensorNode> heads = new ArrayList<SensorNode>();
+		// Choose cluster heads/ zigbee routers
+		List<ZigBeeSensorNode> heads = new ArrayList<ZigBeeSensorNode>();
 		while (heads.size() < clusters) {
 			int aux = rnd.nextInt(this.sensorsNum);
-			SensorNode node = (SensorNode) this.getNetworkElement("sensor-" + aux);
-			node.setClusterHead(true);
+			ZigBeeSensorNode node = (ZigBeeSensorNode) this.getNetworkElement("sensor-" + aux);
+			node.setZigBeeRouter(true);
 			heads.add(node);
 		}
 
@@ -166,7 +189,7 @@ public class WSNScenario extends Scenario {
 		List<Vertex> vertexs = new ArrayList<Vertex>();
 		Vertex baseVertex = new Vertex("base-station");
 		vertexs.add(baseVertex);
-		for (SensorNode head : heads) {
+		for (ZigBeeSensorNode head : heads) {
 			vertexs.add(new Vertex(head.getID()));
 		}
 		for (Vertex vertex : vertexs) {
@@ -174,7 +197,7 @@ public class WSNScenario extends Scenario {
 			int i = 0;
 			for (Vertex vertex2 : vertexs) {
 				if (vertex != vertex2) {
-					double dist = this.getEffectiveDistance(vertex, vertex2);
+					double dist = this.getPathCost(vertex, vertex2);
 					edges[i++] = new Edge(vertex2, dist);
 				}
 			}
@@ -183,37 +206,41 @@ public class WSNScenario extends Scenario {
 		Dijkstra.computePaths(baseVertex);
 
 		for (Vertex v : vertexs) {
-			this.getLogger().finer("Distance to " + v + ": " + v.minDistance);
 			List<Vertex> path = Dijkstra.getShortestPathTo(v);
 
 			int pathSize = path.size();
 			for (int i = 0; i < pathSize - 1; i++) {
 				Vertex v1 = path.get(i);
 				Vertex v2 = path.get(i + 1);
-				this.createRoutePathLink(v1, v2);
+				this.createRoutePathLink(v1, v2); // TODO review this - no se si
+													// el path esta en el
+													// sentido correcto
 			}
 
 			this.getLogger().finer("Path: " + path);
 		}
 
+		this.getLogger().finer("Routing Links created. Starting creation of wifi links...");
+
 		// Add wifi links
-		for (SensorNode sensor : sensors) {
+		for (ZigBeeSensorNode sensor : sensors) {
 			if (!heads.contains(sensor)) {
 				WifiLink wifiLink = new WifiLink("wifi-" + sensor.getID(), "OK", 2, this.getLogger());
-				SensorNode head = this.getClusterHead(sensor, heads);
+				ZigBeeSensorNode head = this.getClusterHead(sensor, heads);
 				wifiLink.connectDevices(sensor, head);
+				sensor.setPath2Sink(wifiLink);
 				this.addNetworkElement(wifiLink);
 			}
 		}
+		this.getLogger().finer("All Wifi links created for all clusters.");
 
 	}
-
 	/**
 	 * @param sensor
 	 * @param heads
 	 * @return
 	 */
-	private SensorNode getClusterHead(SensorNode sensor, List<SensorNode> heads) {
+	private ZigBeeSensorNode getClusterHead(ZigBeeSensorNode sensor, List<ZigBeeSensorNode> heads) {
 		Double2D sensorPos = sensor.getPosition();
 		double[] poss = new double[heads.size()];
 		for (int i = 0; i < heads.size(); i++) {
@@ -239,7 +266,7 @@ public class WSNScenario extends Scenario {
 		// }
 		// }
 
-		SensorNode candidate1 = heads.get(minPos);
+		ZigBeeSensorNode candidate1 = heads.get(minPos);
 		// SensorNode candidate2 = heads.get(minPos2);
 		// int cluster1size = candidate1.getLinks().size();
 		// int cluster2size = candidate2.getLinks().size();
@@ -264,6 +291,8 @@ public class WSNScenario extends Scenario {
 			Device device1 = (Device) this.getNetworkElement(v1.toString());
 			Device device2 = (Device) this.getNetworkElement(v2.toString());
 			link.connectDevices(device1, device2);
+			ZigBeeSensorNode node = (ZigBeeSensorNode) device2;
+			node.setPath2Sink(link);
 			this.addNetworkElement(link);
 		}
 	}
@@ -274,12 +303,47 @@ public class WSNScenario extends Scenario {
 	 * @return
 	 * @throws ShanksException
 	 */
-	private double getEffectiveDistance(Vertex vertex, Vertex vertex2) throws ShanksException {
+	private double getPathCost(Vertex vertex, Vertex vertex2) throws ShanksException {
 		Double2D pos1 = this.getLocation(vertex.toString());
 		Double2D pos2 = this.getLocation(vertex2.toString());
 		double distance = pos1.distance(pos2);
-		return Math.pow(distance, 2);
-		// return distance;
+		double distanceKm = distance / 1000;
+		double loss = 100 + (20 * Math.log10(distanceKm)); // in dB
+		double noiseIndoor = 24; // Aprox. value. in dB
+		double sensitivy = -90; // Sensitivity in dBm
+		// Emission power required to ensure the reception (in dBm)
+		double emisionPower = sensitivy + loss + noiseIndoor;
+		double emissionConsumption = Double.MAX_VALUE;
+
+		// Consumption criteria (emissionPower in dBm)
+		if (emisionPower < -24) {
+			emissionConsumption = 7.3;
+		} else if (emisionPower < -20) {
+			emissionConsumption = 8.3;
+		} else if (emisionPower < -18) {
+			emissionConsumption = 8.8;
+		} else if (emisionPower < -13) {
+			emissionConsumption = 9.8;
+		} else if (emisionPower < -10) {
+			emissionConsumption = 10.4;
+		} else if (emisionPower < -6) {
+			emissionConsumption = 11.3;
+		} else if (emisionPower < -2) {
+			emissionConsumption = 15.6;
+		} else if (emisionPower < 0) {
+			emissionConsumption = 17.0;
+		} else if (emisionPower < 3) {
+			emissionConsumption = 20.2;
+		} else if (emisionPower < 4) {
+			emissionConsumption = 22.5;
+		} else if (emisionPower < 5) {
+			emissionConsumption = 26.9;
+		}
+		double receptionConsumption = 19.7;
+		double totalConsumption = emissionConsumption + receptionConsumption;
+		return totalConsumption;
+		
+		//TODO measure the time of processing and resend packages to make this calculus more real
 	}
 
 	/**
@@ -289,11 +353,11 @@ public class WSNScenario extends Scenario {
 	 */
 	private Double2D getLocation(String id) throws ShanksException {
 		try {
-			SensorNode node = (SensorNode) this.getNetworkElement(id);
+			ZigBeeSensorNode node = (ZigBeeSensorNode) this.getNetworkElement(id);
 			return node.getPosition();
 		} catch (Exception e) {
 			try {
-				BaseStation node = (BaseStation) this.getNetworkElement(id);
+				ZigBeeCoordinatorNode node = (ZigBeeCoordinatorNode) this.getNetworkElement(id);
 				return node.getPosition();
 			} catch (Exception e2) {
 				this.getLogger().warning("Impossible to get location of device: " + id + " -> " + e2.getMessage());
@@ -340,7 +404,7 @@ public class WSNScenario extends Scenario {
 	/**
 	 * @return the clusterheads
 	 */
-	public List<SensorNode> getClusterheads() {
+	public List<ZigBeeSensorNode> getClusterheads() {
 		return clusterheads;
 	}
 
@@ -348,7 +412,7 @@ public class WSNScenario extends Scenario {
 	 * @param clusterheads
 	 *            the clusterheads to set
 	 */
-	public void setClusterheads(List<SensorNode> clusterheads) {
+	public void setClusterheads(List<ZigBeeSensorNode> clusterheads) {
 		this.clusterheads = clusterheads;
 	}
 

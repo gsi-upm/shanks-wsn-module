@@ -22,10 +22,12 @@ import java.util.logging.Logger;
 import sim.util.Double2D;
 import es.upm.dit.gsi.shanks.exception.ShanksException;
 import es.upm.dit.gsi.shanks.model.element.device.Device;
+import es.upm.dit.gsi.shanks.model.element.link.Link;
+import es.upm.dit.gsi.shanks.wsn.agent.ZigBeeSensorNodeSofware;
 
 /**
- * Project: shanks-wsn-module File:
- * es.upm.dit.gsi.shanks.wsn.model.element.device.BaseStation.java
+ * Project: wsn File:
+ * es.upm.dit.gsi.shanks.wsn.model.element.device.SensorNode.java
  * 
  * Grupo de Sistemas Inteligentes Departamento de Ingeniería de Sistemas
  * Telemáticos Universidad Politécnica de Madrid (UPM)
@@ -33,13 +35,21 @@ import es.upm.dit.gsi.shanks.model.element.device.Device;
  * @author Álvaro Carrera Barroso
  * @email a.carrera@gsi.dit.upm.es
  * @twitter @alvarocarrera
- * @date 30/06/2014
+ * @date 27/06/2014
  * @version 0.1
  * 
  */
-public class BaseStation extends Device {
+public class ZigBeeSensorNode extends Device {
 
 	private Double2D position;
+
+	private boolean isZigBeeRouter;
+
+	private Link path2sink;
+
+	private ZigBeeSensorNodeSofware software;
+
+	private boolean detecting;
 
 	/**
 	 * Constructor
@@ -48,10 +58,13 @@ public class BaseStation extends Device {
 	 * @param initialState
 	 * @param isGateway
 	 * @param logger
+	 * @param position
 	 */
-	public BaseStation(String id, String initialState, boolean isGateway, Logger logger, Double2D position) {
+	public ZigBeeSensorNode(String id, String initialState, boolean isGateway, Logger logger, Double2D position) {
 		super(id, initialState, isGateway, logger);
 		this.setPosition(position);
+		this.setZigBeeRouter(false);
+		this.setDetecting(false);
 	}
 
 	/*
@@ -113,6 +126,66 @@ public class BaseStation extends Device {
 	 */
 	public void setPosition(Double2D position) {
 		this.position = position;
+	}
+
+	/**
+	 * @return the isClusterHead
+	 */
+	public boolean isZigBeeRouter() {
+		return isZigBeeRouter;
+	}
+
+	/**
+	 * @param isZigBeeRouter
+	 *            the isClusterHead to set
+	 */
+	public void setZigBeeRouter(boolean isZigBeeRouter) {
+		this.isZigBeeRouter = isZigBeeRouter;
+	}
+
+	/**
+	 * @return the path2sink
+	 */
+	public Link getPath2sink() {
+		return path2sink;
+	}
+
+	/**
+	 * @param path2sink
+	 *            the path2sink to set
+	 */
+	public void setPath2Sink(Link path2sink) {
+		this.path2sink = path2sink;
+	}
+
+	/**
+	 * @return the software
+	 */
+	public ZigBeeSensorNodeSofware getSoftware() {
+		return software;
+	}
+
+	/**
+	 * @param software
+	 *            the software to set
+	 */
+	public void setSoftware(ZigBeeSensorNodeSofware software) {
+		this.software = software;
+	}
+
+	/**
+	 * @return the detecting
+	 */
+	public boolean isDetecting() {
+		return detecting;
+	}
+
+	/**
+	 * @param detecting
+	 *            the detecting to set
+	 */
+	public void setDetecting(boolean detecting) {
+		this.detecting = detecting;
 	}
 
 }

@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package es.upm.dit.gsi.shanks.wsn.utils;
+package es.upm.dit.gsi.shanks.wsn.utils.dijkstra;
 
 /**
  * Project: shanks-wsn-module File:
@@ -37,24 +37,24 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 public class Dijkstra {
-	public static void computePaths(Vertex source) {
-		source.minDistance = 0.;
+	public static void computePaths(Vertex startVertex) {
+		startVertex.minDistance = 0.;
 		PriorityQueue<Vertex> vertexQueue = new PriorityQueue<Vertex>();
-		vertexQueue.add(source);
+		vertexQueue.add(startVertex);
 
 		while (!vertexQueue.isEmpty()) {
-			Vertex u = vertexQueue.poll();
+			Vertex vertex1 = vertexQueue.poll();
 
 			// Visit each edge exiting u
-			for (Edge e : u.adjacencies) {
-				Vertex v = e.target;
-				double weight = e.weight;
-				double distanceThroughU = u.minDistance + weight;
-				if (distanceThroughU < v.minDistance) {
-					vertexQueue.remove(v);
-					v.minDistance = distanceThroughU;
-					v.previous = u;
-					vertexQueue.add(v);
+			for (Edge edge : vertex1.adjacencies) {
+				Vertex vertex2 = edge.target;
+				double weight = edge.weight;
+				double distanceThroughU = vertex1.minDistance + weight;
+				if (distanceThroughU < vertex2.minDistance) {
+					vertexQueue.remove(vertex2);
+					vertex2.minDistance = distanceThroughU;
+					vertex2.previous = vertex1;
+					vertexQueue.add(vertex2);
 				}
 			}
 		}
@@ -66,26 +66,5 @@ public class Dijkstra {
 			path.add(vertex);
 		Collections.reverse(path);
 		return path;
-	}
-
-	public static void main(String[] args) {
-		Vertex v0 = new Vertex("Redvile");
-		Vertex v1 = new Vertex("Blueville");
-		Vertex v2 = new Vertex("Greenville");
-		Vertex v3 = new Vertex("Orangeville");
-		Vertex v4 = new Vertex("Purpleville");
-
-		v0.adjacencies = new Edge[]{new Edge(v1, 5), new Edge(v2, 10), new Edge(v3, 8)};
-		v1.adjacencies = new Edge[]{new Edge(v0, 5), new Edge(v2, 3), new Edge(v4, 7)};
-		v2.adjacencies = new Edge[]{new Edge(v0, 10), new Edge(v1, 3)};
-		v3.adjacencies = new Edge[]{new Edge(v0, 8), new Edge(v4, 2)};
-		v4.adjacencies = new Edge[]{new Edge(v1, 7), new Edge(v3, 2)};
-		Vertex[] vertices = {v0, v1, v2, v3, v4};
-		computePaths(v0);
-		for (Vertex v : vertices) {
-			System.out.println("Distance to " + v + ": " + v.minDistance);
-			List<Vertex> path = getShortestPathTo(v);
-			System.out.println("Path: " + path);
-		}
 	}
 }

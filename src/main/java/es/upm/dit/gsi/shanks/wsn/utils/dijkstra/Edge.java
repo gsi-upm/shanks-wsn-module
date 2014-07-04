@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package es.upm.dit.gsi.shanks.wsn.utils;
+package es.upm.dit.gsi.shanks.wsn.utils.dijkstra;
 
 /**
  * Project: shanks-wsn-module File: es.upm.dit.gsi.shanks.wsn.utils.Edge.java
@@ -34,8 +34,8 @@ package es.upm.dit.gsi.shanks.wsn.utils;
 public class Edge {
 	public final Vertex target;
 	public final double weight;
-	public Edge(Vertex argTarget, double argWeight) {
-		target = argTarget;
-		weight = argWeight;
+	public Edge(Vertex t, double w) {
+		target = t;
+		weight = w;
 	}
 }

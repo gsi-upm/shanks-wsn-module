@@ -29,7 +29,7 @@ import sim.portrayal.Portrayal;
 import sim.portrayal.SimpleInspector;
 import es.upm.dit.gsi.shanks.model.element.device.Device;
 import es.upm.dit.gsi.shanks.model.element.device.portrayal.Device2DPortrayal;
-import es.upm.dit.gsi.shanks.wsn.model.element.device.BaseStation;
+import es.upm.dit.gsi.shanks.wsn.model.element.device.ZigBeeCoordinatorNode;
 
 /**
  * Project: shanks-wsn-module File:
@@ -67,7 +67,7 @@ public class BaseStation2DPortrayal extends Device2DPortrayal implements Portray
 		// *******CODE TO SHOW CIRCLES AS DEVICES**
 		// ****************************************
 
-		BaseStation base = (BaseStation) object;
+		ZigBeeCoordinatorNode base = (ZigBeeCoordinatorNode) object;
 		final double width = 10;
 		final double height = 10;
 		graphics.setColor(Color.black);

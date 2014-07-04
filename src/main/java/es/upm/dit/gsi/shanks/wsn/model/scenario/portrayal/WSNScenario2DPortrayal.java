@@ -28,8 +28,10 @@ import es.upm.dit.gsi.shanks.model.element.link.Link;
 import es.upm.dit.gsi.shanks.model.scenario.Scenario;
 import es.upm.dit.gsi.shanks.model.scenario.portrayal.Scenario2DPortrayal;
 import es.upm.dit.gsi.shanks.model.scenario.portrayal.ScenarioPortrayal;
-import es.upm.dit.gsi.shanks.wsn.model.element.device.BaseStation;
-import es.upm.dit.gsi.shanks.wsn.model.element.device.SensorNode;
+import es.upm.dit.gsi.shanks.wsn.agent.TargetAgent;
+import es.upm.dit.gsi.shanks.wsn.agent.portrayal.TargetAgent2DPortrayal;
+import es.upm.dit.gsi.shanks.wsn.model.element.device.ZigBeeCoordinatorNode;
+import es.upm.dit.gsi.shanks.wsn.model.element.device.ZigBeeSensorNode;
 import es.upm.dit.gsi.shanks.wsn.model.element.device.portrayal.BaseStation2DPortrayal;
 import es.upm.dit.gsi.shanks.wsn.model.element.device.portrayal.SensorNode2DPortrayal;
 import es.upm.dit.gsi.shanks.wsn.model.element.link.RoutePathLink;
@@ -89,13 +91,13 @@ public class WSNScenario2DPortrayal extends Scenario2DPortrayal {
 		HashMap<String, NetworkElement> elements = this.getScenario().getCurrentElements();
 		for (Entry<String, NetworkElement> entry : elements.entrySet()) {
 			NetworkElement element = entry.getValue();
-			if (element.getClass().equals(SensorNode.class)) {
-				SensorNode node = (SensorNode) element;
+			if (element.getClass().equals(ZigBeeSensorNode.class)) {
+				ZigBeeSensorNode node = (ZigBeeSensorNode) element;
 				this.situateDevice(node, node.getPosition().x, node.getPosition().y);
 			}
 		}
 
-		BaseStation base = (BaseStation) this.getScenario().getNetworkElement("base-station");
+		ZigBeeCoordinatorNode base = (ZigBeeCoordinatorNode) this.getScenario().getNetworkElement("base-station");
 		this.situateDevice(base, base.getPosition().x, base.getPosition().y);
 
 		for (Entry<String, NetworkElement> entry : elements.entrySet()) {
@@ -124,8 +126,9 @@ public class WSNScenario2DPortrayal extends Scenario2DPortrayal {
 					.get(Scenario2DPortrayal.MAIN_DISPLAY_ID).get(ScenarioPortrayal.LINKS_PORTRAYAL);
 
 			// Portrayals for devices
-			devicePortrayal.setPortrayalForClass(SensorNode.class, new SensorNode2DPortrayal());
-			devicePortrayal.setPortrayalForClass(BaseStation.class, new BaseStation2DPortrayal());
+			devicePortrayal.setPortrayalForClass(ZigBeeSensorNode.class, new SensorNode2DPortrayal());
+			devicePortrayal.setPortrayalForClass(ZigBeeCoordinatorNode.class, new BaseStation2DPortrayal());
+			devicePortrayal.setPortrayalForClass(TargetAgent.class, new TargetAgent2DPortrayal());
 
 			// Portrayals for links
 			networkPortrayal.setPortrayalForAll(new WirelessLink2DPortrayal());

@@ -17,11 +17,20 @@
  */
 package es.upm.dit.gsi.shanks.wsn;
 
+import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 import es.upm.dit.gsi.shanks.ShanksSimulation;
 import es.upm.dit.gsi.shanks.exception.ShanksException;
+import es.upm.dit.gsi.shanks.model.element.NetworkElement;
 import es.upm.dit.gsi.shanks.model.scenario.Scenario;
+import es.upm.dit.gsi.shanks.wsn.agent.ZigBeeCoordiantorNodeSoftware;
+import es.upm.dit.gsi.shanks.wsn.agent.ZigBeeSensorNodeSofware;
+import es.upm.dit.gsi.shanks.wsn.agent.TargetAgent;
+import es.upm.dit.gsi.shanks.wsn.model.element.device.ZigBeeCoordinatorNode;
+import es.upm.dit.gsi.shanks.wsn.model.element.device.ZigBeeSensorNode;
+import es.upm.dit.gsi.shanks.wsn.model.scenario.WSNScenario;
 
 /**
  * Project: wsn File: es.upm.dit.gsi.shanks.wsn.WSNSimulation.java
@@ -56,7 +65,6 @@ public class WSNSimulation extends ShanksSimulation {
 	public WSNSimulation(long seed, Class<? extends Scenario> scenarioClass, String scenarioID, String initialState,
 			Properties properties) throws ShanksException {
 		super(seed, scenarioClass, scenarioID, initialState, properties);
-		// TODO Auto-generated constructor stub
 	}
 
 	/*
@@ -76,7 +84,31 @@ public class WSNSimulation extends ShanksSimulation {
 	 */
 	@Override
 	public void registerShanksAgents() throws ShanksException {
-		// TODO Auto-generated constructor stub
+		HashMap<String, NetworkElement> elementsMap = this.getScenario().getCurrentElements();
+		String percp = this.getScenario().getProperties().getProperty(WSNScenario.PERCEPTION_RANGE);
+		double perceptionRange = new Double(percp);
+		// Install software in nodes
+		for (Entry<String, NetworkElement> entry : elementsMap.entrySet()) {
+			if (entry.getValue().getClass().equals(ZigBeeSensorNode.class)) {
+				ZigBeeSensorNode node = (ZigBeeSensorNode) entry.getValue();
+				ZigBeeSensorNodeSofware software = new ZigBeeSensorNodeSofware("software-" + node.getID(), logger, node,
+						perceptionRange);
+				this.registerShanksAgent(software);
+			}
+		}
+
+		// Install software in base station
+		ZigBeeCoordinatorNode bs = (ZigBeeCoordinatorNode) this.getScenario().getNetworkElement("base-station");
+		ZigBeeCoordiantorNodeSoftware bsoftware = new ZigBeeCoordiantorNodeSoftware("software-" + bs.getID(), logger, bs);
+		this.registerShanksAgent(bsoftware);
+
+		// Create target agents
+		String targetsString = this.getScenario().getProperties().getProperty(WSNScenario.TARGETS);
+		int targets = new Integer(targetsString);
+		for (int i = 0; i < targets; i++) {
+			TargetAgent targetAgent = new TargetAgent("target-" + i, this);
+			this.registerShanksAgent(targetAgent);
+		}
 	}
 
 }

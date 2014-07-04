@@ -18,6 +18,8 @@
 package es.upm.dit.gsi.shanks.wsn;
 
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import es.upm.dit.gsi.shanks.exception.ShanksException;
 import es.upm.dit.gsi.shanks.model.scenario.Scenario;
@@ -51,13 +53,24 @@ public class WSNSimulationLauncher {
 	 * @throws ShanksException
 	 */
 	public static void main(String[] args) throws ShanksException {
+
+		// Properties to configure scenario
 		Properties scenarioProperties = new Properties();
 		scenarioProperties.put(Scenario.SIMULATION_GUI, Scenario.SIMULATION_2D);
 		scenarioProperties.put(WSNScenario.SENSORS, "100");
-		scenarioProperties.put(WSNScenario.FIELD_WIDTH, "800");
-		scenarioProperties.put(WSNScenario.FIELD_HEIGHT, "800");
+		scenarioProperties.put(WSNScenario.FIELD_WIDTH, "100");
+		scenarioProperties.put(WSNScenario.FIELD_HEIGHT, "100");
 		scenarioProperties.put(WSNScenario.CLUSTERS, "10");
-		WSNSimulation sim = new WSNSimulation(System.currentTimeMillis(), WSNScenario.class, "WSNScenario",
+		scenarioProperties.put(WSNScenario.PERCEPTION_RANGE, "5");
+		scenarioProperties.put(WSNScenario.TARGETS, "1");
+		scenarioProperties.put(WSNScenario.TARGET_SPEED, "0.1");
+
+		String scenarioName = "WSNScenario";
+
+		Logger logger = Logger.getLogger(scenarioName);
+		LogConfigurator.log2File(logger, "simulation", Level.OFF, Level.WARNING);
+
+		WSNSimulation sim = new WSNSimulation(System.currentTimeMillis(), WSNScenario.class, scenarioName,
 				WSNScenarioStates.SUNNY.toString(), scenarioProperties);
 		WSNSimulation2DGUI gui = new WSNSimulation2DGUI(sim);
 		gui.start();

@@ -15,10 +15,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package es.upm.dit.gsi.shanks.wsn.utils;
+package es.upm.dit.gsi.shanks.wsn.agent.portrayal;
+
+import java.awt.Color;
+import java.awt.Graphics2D;
+
+import sim.portrayal.DrawInfo2D;
+import es.upm.dit.gsi.shanks.model.element.device.portrayal.Device2DPortrayal;
 
 /**
- * Project: shanks-wsn-module File: es.upm.dit.gsi.shanks.wsn.utils.Vertex.java
+ * Project: shanks-wsn-module File:
+ * es.upm.dit.gsi.shanks.wsn.agent.portrayal.TargetAgent.java
  * 
  * Grupo de Sistemas Inteligentes Departamento de Ingeniería de Sistemas
  * Telemáticos Universidad Politécnica de Madrid (UPM)
@@ -26,23 +33,34 @@ package es.upm.dit.gsi.shanks.wsn.utils;
  * @author Álvaro Carrera Barroso
  * @email a.carrera@gsi.dit.upm.es
  * @twitter @alvarocarrera
- * @date 30/06/2014
+ * @date 01/07/2014
  * @version 0.1
  * 
  */
+public class TargetAgent2DPortrayal extends Device2DPortrayal {
 
-public class Vertex implements Comparable<Vertex> {
-	public final String name;
-	public Edge[] adjacencies;
-	public double minDistance = Double.POSITIVE_INFINITY;
-	public Vertex previous;
-	public Vertex(String argName) {
-		name = argName;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 4840622097839730565L;
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see sim.portrayal.SimplePortrayal2D#draw(java.lang.Object,
+	 * java.awt.Graphics2D, sim.portrayal.DrawInfo2D)
+	 */
+	@Override
+	public void draw(Object object, Graphics2D graphics, DrawInfo2D info) {
+
+		graphics.setColor(Color.red);
+
+		final int w = (int) 20;
+		final int h = (int) 20;
+		final int x = (int) (info.draw.x - w / 2.0);
+		final int y = (int) (info.draw.y - h / 2.0);
+		graphics.fillOval(x, y, w, h);
+
 	}
-	public String toString() {
-		return name;
-	}
-	public int compareTo(Vertex other) {
-		return Double.compare(minDistance, other.minDistance);
-	}
+
 }
