@@ -25,6 +25,7 @@ import java.util.Random;
 import java.util.logging.Logger;
 
 import sim.util.Double2D;
+import es.upm.dit.gsi.shanks.agent.capability.movement.ShanksAgentMovementCapability;
 import es.upm.dit.gsi.shanks.exception.ShanksException;
 import es.upm.dit.gsi.shanks.model.element.device.Device;
 import es.upm.dit.gsi.shanks.model.event.failiure.Failure;
@@ -142,45 +143,58 @@ public class WSNScenario extends Scenario {
 		int clusters = new Integer(clustersString);
 
 		// Base Station on the top
-		Double2D pos = new Double2D(width / 2, 0);
+		// Double2D pos = new Double2D(width / 2, 0);
 
 		// Base Station in the middle
-		// Double2D pos = new Double2D(width / 2, height / 2);
+		Double2D pos = new Double2D(width / 2, height / 2);
 
 		ZigBeeCoordinatorNode base = new ZigBeeCoordinatorNode("base-station", "OK", false, logger, pos);
 		this.addNetworkElement(base);
 
+		List<ZigBeeSensorNode> heads = new ArrayList<ZigBeeSensorNode>();
 		List<ZigBeeSensorNode> sensors = new ArrayList<ZigBeeSensorNode>();
+
+		int rangeRadioDistance = 0;
+		Double2D orig = new Double2D(0, 0);
+		boolean inRange = true;
+		while (inRange == true) {
+			Double2D p = new Double2D(0, ++rangeRadioDistance);
+			double d = this.getPathCost(orig, p);
+			if (d == Double.MAX_VALUE) {
+				rangeRadioDistance = rangeRadioDistance - 5;
+				inRange = false;
+			}
+		}
 
 		// Create sensors nodes
 		boolean[][] map = new boolean[width][height];
 		for (int i = 0; i < sensorsNum; i++) {
-			int w = rnd.nextInt(width);
-			int h = rnd.nextInt(height);
-			if (map[w][h] == false) {
-				pos = new Double2D(w, h);
-				map[w][h] = true;
-			} else {
-				do {
-					w = rnd.nextInt(width);
-					h = rnd.nextInt(height);
-					if (map[w][h] == false) {
-						pos = new Double2D(w, h);
-						map[w][h] = true;
-					}
-				} while (map[h][w] == true);
-			}
+			int w;
+			int h;
+			do {
+				w = rnd.nextInt(width);
+				h = rnd.nextInt(height);
+				if (map[w][h] == false) {
+					pos = new Double2D(w, h);
+					map[w][h] = true;
+				}
+			} while (map[h][w] == true);
+
 			ZigBeeSensorNode node = new ZigBeeSensorNode("sensor-" + i, "OK", false, logger, pos);
 			sensors.add(node);
 			this.addNetworkElement(node);
 		}
 
 		// Choose cluster heads/ zigbee routers
-		List<ZigBeeSensorNode> heads = new ArrayList<ZigBeeSensorNode>();
 		while (heads.size() < clusters) {
 			int aux = rnd.nextInt(this.sensorsNum);
 			ZigBeeSensorNode node = (ZigBeeSensorNode) this.getNetworkElement("sensor-" + aux);
+			while (heads.contains(node)) {
+				aux = rnd.nextInt(this.sensorsNum);
+				node = (ZigBeeSensorNode) this.getNetworkElement("sensor-" + aux);
+			}
 			node.setZigBeeRouter(true);
+			this.moveInRange(node, heads, base, rangeRadioDistance);
 			heads.add(node);
 		}
 
@@ -193,13 +207,22 @@ public class WSNScenario extends Scenario {
 			vertexs.add(new Vertex(head.getID()));
 		}
 		for (Vertex vertex : vertexs) {
-			Edge[] edges = new Edge[vertexs.size() - 1];
-			int i = 0;
+			List<Edge> list = new ArrayList<Edge>();
 			for (Vertex vertex2 : vertexs) {
 				if (vertex != vertex2) {
-					double dist = this.getPathCost(vertex, vertex2);
-					edges[i++] = new Edge(vertex2, dist);
+					Double2D pos1 = this.getLocation(vertex.toString());
+					Double2D pos2 = this.getLocation(vertex2.toString());
+					double dist = this.getPathCost(pos1, pos2);
+					if (dist < Double.MAX_VALUE) {
+						Edge edge = new Edge(vertex2, dist);
+						list.add(edge);
+					}
 				}
+			}
+
+			Edge[] edges = new Edge[list.size()];
+			for (int i = 0; i < list.size(); i++) {
+				edges[i] = list.get(i);
 			}
 			vertex.adjacencies = edges;
 		}
@@ -212,21 +235,27 @@ public class WSNScenario extends Scenario {
 			for (int i = 0; i < pathSize - 1; i++) {
 				Vertex v1 = path.get(i);
 				Vertex v2 = path.get(i + 1);
-				this.createRoutePathLink(v1, v2); // TODO review this - no se si
-													// el path esta en el
-													// sentido correcto
+				this.createRoutePathLink(v1, v2);
+				// TODO review this - no se si el path esta en el sentido
+				// correcto
 			}
 
 			this.getLogger().finer("Path: " + path);
 		}
-
 		this.getLogger().finer("Routing Links created. Starting creation of wifi links...");
 
 		// Add wifi links
+
+		// TODO balancear clusters para que no sean tan diferentes
+		
 		for (ZigBeeSensorNode sensor : sensors) {
 			if (!heads.contains(sensor)) {
-				WifiLink wifiLink = new WifiLink("wifi-" + sensor.getID(), "OK", 2, this.getLogger());
 				ZigBeeSensorNode head = this.getClusterHead(sensor, heads);
+				if (head == null) {
+					this.moveInRange(sensor, heads, null, rangeRadioDistance);
+					head = this.getClusterHead(sensor, heads);
+				}
+				WifiLink wifiLink = new WifiLink("wifi-" + sensor.getID(), "OK", 2, this.getLogger());
 				wifiLink.connectDevices(sensor, head);
 				sensor.setPath2Sink(wifiLink);
 				this.addNetworkElement(wifiLink);
@@ -236,45 +265,92 @@ public class WSNScenario extends Scenario {
 
 	}
 	/**
+	 * @param node
+	 * @param heads
+	 * @param base
+	 * @param rangeRadioDistance
+	 * @throws ShanksException
+	 */
+	private void moveInRange(ZigBeeSensorNode node, List<ZigBeeSensorNode> heads, ZigBeeCoordinatorNode base,
+			int rangeRadioDistance) throws ShanksException {
+		Double2D closestPos = this.getClosestNode(node, heads, base);
+		Double2D originalPos = node.getPosition();
+		double speed = rangeRadioDistance / 5;
+		Double2D currentPos = node.getPosition();
+		double distance = currentPos.distance(closestPos);
+
+		while (distance > rangeRadioDistance) {
+			Double2D direction = closestPos.subtract(currentPos);
+			direction = direction.normalize();
+			Double2D movement = direction.multiply(speed);
+			Double2D newPos = currentPos.add(movement);
+			currentPos = newPos;
+			distance = currentPos.distance(closestPos);
+		}
+		this.getLogger().finest(
+				"Sensor moved: " + node.getID() + " -> Orignal Pos: " + originalPos.toString() + " / Final Pos: "
+						+ currentPos.toString() + " / Target Pos: " + closestPos.toString());
+		node.setPosition(currentPos);
+
+	}
+
+	/**
+	 * @param node
+	 * @param heads
+	 * @param base
+	 * @return
+	 * @throws ShanksException
+	 */
+	private Double2D getClosestNode(ZigBeeSensorNode node, List<ZigBeeSensorNode> heads, ZigBeeCoordinatorNode base)
+			throws ShanksException {
+		Double2D closestPos = null;
+		double minDistance = Double.MAX_VALUE;
+		if (base != null) {
+			double distance = node.getPosition().distance(base.getPosition());
+			if (minDistance > distance) {
+				minDistance = distance;
+				closestPos = base.getPosition();
+			}
+		}
+
+		for (ZigBeeSensorNode head : heads) {
+			double distance = node.getPosition().distance(head.getPosition());
+			if (minDistance > distance) {
+				minDistance = distance;
+				closestPos = head.getPosition();
+			}
+		}
+		return closestPos;
+	}
+
+	/**
 	 * @param sensor
 	 * @param heads
 	 * @return
+	 * @throws ShanksException
 	 */
-	private ZigBeeSensorNode getClusterHead(ZigBeeSensorNode sensor, List<ZigBeeSensorNode> heads) {
+	private ZigBeeSensorNode getClusterHead(ZigBeeSensorNode sensor, List<ZigBeeSensorNode> heads)
+			throws ShanksException {
 		Double2D sensorPos = sensor.getPosition();
-		double[] poss = new double[heads.size()];
+		double[] consumptions = new double[heads.size()];
 		for (int i = 0; i < heads.size(); i++) {
-			poss[i] = sensorPos.distance(heads.get(i).getPosition());
+			consumptions[i] = this.getPathCost(sensorPos, heads.get(i).getPosition());
 		}
 		int minPos = Integer.MAX_VALUE;
-		// int minPos2 = Integer.MAX_VALUE;
-		double minValue = Double.MAX_VALUE;
+		double minConsumption = Double.MAX_VALUE;
 		for (int i = 0; i < heads.size(); i++) {
-			if (minValue > poss[i]) {
-				minValue = poss[i];
-				// minPos2 = minPos;
+			if (minConsumption > consumptions[i]) {
+				minConsumption = consumptions[i];
 				minPos = i;
 			}
 		}
-		// if (minPos == 0) {
-		// minValue = Double.MAX_VALUE;
-		// for (int i = 1; i < heads.size(); i++) {
-		// if (minValue > poss[i]) {
-		// minValue = poss[i];
-		// minPos2 = i;
-		// }
-		// }
-		// }
 
-		ZigBeeSensorNode candidate1 = heads.get(minPos);
-		// SensorNode candidate2 = heads.get(minPos2);
-		// int cluster1size = candidate1.getLinks().size();
-		// int cluster2size = candidate2.getLinks().size();
-		// if (cluster2size != 0 && cluster1size / cluster2size >= 2) {
-		// return candidate2;
-		// } else {
-		return candidate1;
-		// }
+		if (minPos == Integer.MAX_VALUE && minConsumption == Double.MAX_VALUE) {
+			return null;
+		} else {
+			ZigBeeSensorNode head = heads.get(minPos);
+			return head;
+		}
 	}
 
 	/**
@@ -298,24 +374,43 @@ public class WSNScenario extends Scenario {
 	}
 
 	/**
-	 * @param vertex
-	 * @param vertex2
+	 * @param pos1
+	 * @param pos2
 	 * @return
 	 * @throws ShanksException
 	 */
-	private double getPathCost(Vertex vertex, Vertex vertex2) throws ShanksException {
-		Double2D pos1 = this.getLocation(vertex.toString());
-		Double2D pos2 = this.getLocation(vertex2.toString());
+	private double getPathCost(Double2D pos1, Double2D pos2) throws ShanksException {
+
 		double distance = pos1.distance(pos2);
 		double distanceKm = distance / 1000;
 		double loss = 100 + (20 * Math.log10(distanceKm)); // in dB
-		double noiseIndoor = 24; // Aprox. value. in dB
+		// TODO add these parameters configurable with properties
+		// TODO noise, sensitivity and cpu
+		double noiseIndoor = 26; // Aprox. value. in dB value indoor
+		// double noiseIndoor = 10; // Aprox. value. in dB value outdoor
 		double sensitivy = -90; // Sensitivity in dBm
 		// Emission power required to ensure the reception (in dBm)
 		double emisionPower = sensitivy + loss + noiseIndoor;
 		double emissionConsumption = Double.MAX_VALUE;
 
-		// Consumption criteria (emissionPower in dBm)
+		// String packet = "CPU:80/MEM:50/TMP:50/D:Y/S100:S101:S102:S103:S104";
+		// String packet = "CPU:80/MEM:50/TMP:50/D:Y/S100:S101:S102";
+		// byte[] asciiBytes;
+		// try {
+		// asciiBytes = packet.getBytes("ASCII");
+		// this.getLogger().severe("Bytes: " + asciiBytes.length); // prints
+		// "12"
+		// } catch (UnsupportedEncodingException e) {
+		// e.printStackTrace();
+		// }
+		// Measure the time of processing and resend packages to make this
+		// calculus more real
+		// Efficient data throughput: 108kbps = 13.5KB/s
+		// Avg 40Bytes/package = 320bits/package
+		// t = 320 / 108000 = 2.96ms (aprox. 3ms)
+		double t = 3.0 / 1000.0;
+
+		// Consumption criteria (in mA) - (emissionPower in dBm)
 		if (emisionPower < -24) {
 			emissionConsumption = 7.3;
 		} else if (emisionPower < -20) {
@@ -339,11 +434,18 @@ public class WSNScenario extends Scenario {
 		} else if (emisionPower < 5) {
 			emissionConsumption = 26.9;
 		}
-		double receptionConsumption = 19.7;
-		double totalConsumption = emissionConsumption + receptionConsumption;
-		return totalConsumption;
-		
-		//TODO measure the time of processing and resend packages to make this calculus more real
+
+		if (emissionConsumption < Double.MAX_VALUE) {
+			double receptionConsumption = 19.7; // in mA
+			double cpuConsumption = 8; // in mA
+			double totalConsumption = emissionConsumption + receptionConsumption + cpuConsumption; // mA/s
+			double totalConsumptionPerPackage = totalConsumption * t;
+			// double totalConsumptionPerPackage = totalConsumption -
+			// cpuConsumption;
+			return totalConsumptionPerPackage;
+		} else {
+			return Double.MAX_VALUE;
+		}
 	}
 
 	/**
