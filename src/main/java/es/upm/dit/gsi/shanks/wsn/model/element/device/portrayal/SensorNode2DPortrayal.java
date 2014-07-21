@@ -60,36 +60,54 @@ public class SensorNode2DPortrayal extends Device2DPortrayal implements Portraya
 
 		ZigBeeSensorNode sensorNode = (ZigBeeSensorNode) object;
 		String id = sensorNode.getID();
-		id = id.split("-")[1];
-		double width = 10;
-		double height = 10;
+		if (id.startsWith("base")) {
 
-		if (sensorNode.isDetecting()) {
-			graphics.setColor(Color.blue);
-		} else if (sensorNode.isZigBeeRouter()) {
-			graphics.setColor(Color.gray);
+			final double width = 10;
+			final double height = 10;
+			graphics.setColor(Color.black);
+
+			// Draw the devices
+			final int x = (int) (info.draw.x - width / 2.0);
+			final int y = (int) (info.draw.y - height / 2.0);
+			final int w = (int) (width);
+			final int h = (int) (height);
+			graphics.fillRect(x, y, w, h);
+
+			// Draw the devices ID ID
+			graphics.setColor(Color.black);
+			graphics.drawString(sensorNode.getID(), x - 3, y);
 		} else {
-			graphics.setColor(Color.green);
-		}
+			id = id.split("-")[1];
+			double width = 10;
+			double height = 10;
 
-		if (sensorNode.isZigBeeRouter()) {
-			width = 20;
-			height = 20;
-		}
+			if (sensorNode.isDetecting()) {
+				graphics.setColor(Color.blue);
+			} else if (sensorNode.isZigBeeRouter()) {
+				graphics.setColor(Color.gray);
+			} else {
+				graphics.setColor(Color.green);
+			}
 
-		// Draw the devices
-		final int x = (int) (info.draw.x - width / 2.0);
-		final int y = (int) (info.draw.y - height / 2.0);
-		final int w = (int) (width);
-		final int h = (int) (height);
-		graphics.fillOval(x, y, w, h);
+			if (sensorNode.isZigBeeRouter()) {
+				width = 20;
+				height = 20;
+			}
 
-		// Draw the devices ID ID
-		graphics.setColor(Color.black);
-		if (sensorNode.isZigBeeRouter()) {
-			graphics.drawString("CH-" + id, x - 3, y);
-		} else {
-			graphics.drawString(id, x - 3, y);
+			// Draw the devices
+			final int x = (int) (info.draw.x - width / 2.0);
+			final int y = (int) (info.draw.y - height / 2.0);
+			final int w = (int) (width);
+			final int h = (int) (height);
+			graphics.fillOval(x, y, w, h);
+
+			// Draw the devices ID ID
+			graphics.setColor(Color.black);
+			if (sensorNode.isZigBeeRouter()) {
+				graphics.drawString("CH-" + id, x - 3, y);
+			} else {
+				graphics.drawString(id, x - 3, y);
+			}
 		}
 
 	}

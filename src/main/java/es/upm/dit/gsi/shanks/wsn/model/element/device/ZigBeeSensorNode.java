@@ -20,10 +20,10 @@ package es.upm.dit.gsi.shanks.wsn.model.element.device;
 import java.util.logging.Logger;
 
 import sim.util.Double2D;
+import es.upm.dit.gsi.shanks.agent.ShanksAgent;
 import es.upm.dit.gsi.shanks.exception.ShanksException;
 import es.upm.dit.gsi.shanks.model.element.device.Device;
 import es.upm.dit.gsi.shanks.model.element.link.Link;
-import es.upm.dit.gsi.shanks.wsn.agent.ZigBeeSensorNodeSofware;
 
 /**
  * Project: wsn File:
@@ -47,9 +47,17 @@ public class ZigBeeSensorNode extends Device {
 
 	private Link path2sink;
 
-	private ZigBeeSensorNodeSofware software;
+	private ShanksAgent software;
 
 	private boolean detecting;
+
+	private Battery battery;
+
+	private CPU cpu;
+
+	private Memory memory;
+
+	private double temp;
 
 	/**
 	 * Constructor
@@ -60,11 +68,16 @@ public class ZigBeeSensorNode extends Device {
 	 * @param logger
 	 * @param position
 	 */
-	public ZigBeeSensorNode(String id, String initialState, boolean isGateway, Logger logger, Double2D position) {
+	public ZigBeeSensorNode(String id, String initialState, boolean isGateway, Logger logger, Double2D position,
+			Battery battery) {
 		super(id, initialState, isGateway, logger);
 		this.setPosition(position);
 		this.setZigBeeRouter(false);
 		this.setDetecting(false);
+		this.setBattery(battery);
+		this.setCpu(new CPU());
+		this.setMemory(new Memory());
+		this.setTemp(35.0);
 	}
 
 	/*
@@ -161,7 +174,7 @@ public class ZigBeeSensorNode extends Device {
 	/**
 	 * @return the software
 	 */
-	public ZigBeeSensorNodeSofware getSoftware() {
+	public ShanksAgent getSoftware() {
 		return software;
 	}
 
@@ -169,7 +182,7 @@ public class ZigBeeSensorNode extends Device {
 	 * @param software
 	 *            the software to set
 	 */
-	public void setSoftware(ZigBeeSensorNodeSofware software) {
+	public void setSoftware(ShanksAgent software) {
 		this.software = software;
 	}
 
@@ -186,6 +199,129 @@ public class ZigBeeSensorNode extends Device {
 	 */
 	public void setDetecting(boolean detecting) {
 		this.detecting = detecting;
+	}
+
+	/**
+	 * @return the battery
+	 */
+	public Battery getBattery() {
+		return battery;
+	}
+
+	/**
+	 * @param battery
+	 *            the battery to set
+	 */
+	public void setBattery(Battery battery) {
+		this.battery = battery;
+	}
+
+	/**
+	 * @param sensor
+	 * @param noise
+	 *            in dB
+	 * @return in mA
+	 */
+	public double getRequiredCurrentForEmissionToNode(ZigBeeSensorNode sensor, double noise) {
+		Double2D pos1 = this.getPosition();
+		Double2D pos2 = sensor.getPosition();
+		double distance = pos1.distance(pos2);
+		double distanceKm = distance / 1000;
+		double loss = 100 + (20 * Math.log10(distanceKm)); // in dB for 2,4GHz
+		double sensitivy = -90; // Sensitivity in dBm
+		// Emission power required to ensure the reception (in dBm)
+		double emisionPower = sensitivy + loss + noise;
+		double emissionConsumption = Double.MAX_VALUE;
+
+		// Consumption criteria (in mA) - (emissionPower in dBm)
+		if (emisionPower < -24) {
+			emissionConsumption = 7.3;
+		} else if (emisionPower < -20) {
+			emissionConsumption = 8.3;
+		} else if (emisionPower < -18) {
+			emissionConsumption = 8.8;
+		} else if (emisionPower < -13) {
+			emissionConsumption = 9.8;
+		} else if (emisionPower < -10) {
+			emissionConsumption = 10.4;
+		} else if (emisionPower < -6) {
+			emissionConsumption = 11.3;
+		} else if (emisionPower < -2) {
+			emissionConsumption = 15.6;
+		} else if (emisionPower < 0) {
+			emissionConsumption = 17.0;
+		} else if (emisionPower < 3) {
+			emissionConsumption = 20.2;
+		} else if (emisionPower < 4) {
+			emissionConsumption = 22.5;
+		} else if (emisionPower < 5) {
+			emissionConsumption = 26.9;
+		}
+
+		return emissionConsumption;
+	}
+
+	/**
+	 * @return the cpu
+	 */
+	public CPU getCpu() {
+		return cpu;
+	}
+
+	/**
+	 * @param cpu
+	 *            the cpu to set
+	 */
+	public void setCpu(CPU cpu) {
+		this.cpu = cpu;
+	}
+
+	/**
+	 * @return the memory
+	 */
+	public Memory getMemory() {
+		return memory;
+	}
+
+	/**
+	 * @param memory
+	 *            the memory to set
+	 */
+	public void setMemory(Memory memory) {
+		this.memory = memory;
+	}
+
+	/**
+	 * @return the temp
+	 */
+	public double getTemp() {
+		return temp;
+	}
+
+	/**
+	 * @param temp
+	 *            the temp to set
+	 */
+	public void setTemp(double temp) {
+		this.temp = temp;
+	}
+
+	/**
+	 * @param celsius
+	 */
+	public void increaseTemp(double celsius) {
+		if (this.temp <= 100.0) {
+			this.temp += celsius;
+		}
+	}
+
+	/**
+	 * @param celsius
+	 */
+	public void decreaseTemp(double celsius) {
+		if (this.temp >= 25.0) {
+			this.temp -= celsius;
+		}
 	}
 
 }

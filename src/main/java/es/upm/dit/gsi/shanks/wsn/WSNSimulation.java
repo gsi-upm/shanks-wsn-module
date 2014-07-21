@@ -25,10 +25,9 @@ import es.upm.dit.gsi.shanks.ShanksSimulation;
 import es.upm.dit.gsi.shanks.exception.ShanksException;
 import es.upm.dit.gsi.shanks.model.element.NetworkElement;
 import es.upm.dit.gsi.shanks.model.scenario.Scenario;
+import es.upm.dit.gsi.shanks.wsn.agent.TargetAgent;
 import es.upm.dit.gsi.shanks.wsn.agent.ZigBeeCoordiantorNodeSoftware;
 import es.upm.dit.gsi.shanks.wsn.agent.ZigBeeSensorNodeSofware;
-import es.upm.dit.gsi.shanks.wsn.agent.TargetAgent;
-import es.upm.dit.gsi.shanks.wsn.model.element.device.ZigBeeCoordinatorNode;
 import es.upm.dit.gsi.shanks.wsn.model.element.device.ZigBeeSensorNode;
 import es.upm.dit.gsi.shanks.wsn.model.scenario.WSNScenario;
 
@@ -87,20 +86,28 @@ public class WSNSimulation extends ShanksSimulation {
 		HashMap<String, NetworkElement> elementsMap = this.getScenario().getCurrentElements();
 		String percp = this.getScenario().getProperties().getProperty(WSNScenario.PERCEPTION_RANGE);
 		double perceptionRange = new Double(percp);
+		String stepTimeString = this.getScenario().getProperties().getProperty(WSNScenario.STEP_TIME);
+		double stepTime = new Double(stepTimeString);
+
+		String maxNoiseString = this.getScenario().getProperties().getProperty(WSNScenario.MAX_NOISE_IN_DB);
+		double maxNoise = new Double(maxNoiseString);
+		String minNoiseString = this.getScenario().getProperties().getProperty(WSNScenario.MIN_NOISE_IN_DB);
+		double minNoise = new Double(minNoiseString);
 		// Install software in nodes
 		for (Entry<String, NetworkElement> entry : elementsMap.entrySet()) {
 			if (entry.getValue().getClass().equals(ZigBeeSensorNode.class)) {
 				ZigBeeSensorNode node = (ZigBeeSensorNode) entry.getValue();
-				ZigBeeSensorNodeSofware software = new ZigBeeSensorNodeSofware("software-" + node.getID(), logger, node,
-						perceptionRange);
-				this.registerShanksAgent(software);
+				if (node.getID().startsWith("base")) {
+					ZigBeeCoordiantorNodeSoftware bsoftware = new ZigBeeCoordiantorNodeSoftware("software-"
+							+ node.getID(), logger, node, this);
+					this.registerShanksAgent(bsoftware);
+				} else {
+					ZigBeeSensorNodeSofware software = new ZigBeeSensorNodeSofware("software-" + node.getID(), logger,
+							node, perceptionRange, stepTime, maxNoise, minNoise, this.random);
+					this.registerShanksAgent(software);
+				}
 			}
 		}
-
-		// Install software in base station
-		ZigBeeCoordinatorNode bs = (ZigBeeCoordinatorNode) this.getScenario().getNetworkElement("base-station");
-		ZigBeeCoordiantorNodeSoftware bsoftware = new ZigBeeCoordiantorNodeSoftware("software-" + bs.getID(), logger, bs);
-		this.registerShanksAgent(bsoftware);
 
 		// Create target agents
 		String targetsString = this.getScenario().getProperties().getProperty(WSNScenario.TARGETS);
@@ -110,5 +117,4 @@ public class WSNSimulation extends ShanksSimulation {
 			this.registerShanksAgent(targetAgent);
 		}
 	}
-
 }

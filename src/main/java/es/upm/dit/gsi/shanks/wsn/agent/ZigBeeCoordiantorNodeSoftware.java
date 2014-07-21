@@ -24,7 +24,7 @@ import java.util.logging.Logger;
 
 import es.upm.dit.gsi.shanks.ShanksSimulation;
 import es.upm.dit.gsi.shanks.agent.SimpleShanksAgent;
-import es.upm.dit.gsi.shanks.wsn.model.element.device.ZigBeeCoordinatorNode;
+import es.upm.dit.gsi.shanks.wsn.model.element.device.ZigBeeSensorNode;
 
 /**
  * Project: shanks-wsn-module File:
@@ -47,7 +47,9 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 	 */
 	private static final long serialVersionUID = 5967376293400865123L;
 
-	private ZigBeeCoordinatorNode hardware;
+	private ZigBeeSensorNode hardware;
+
+	private ShanksSimulation sim;
 
 	/**
 	 * Constructor
@@ -55,10 +57,27 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 	 * @param id
 	 * @param logger
 	 */
-	public ZigBeeCoordiantorNodeSoftware(String id, Logger logger, ZigBeeCoordinatorNode hardware) {
+	public ZigBeeCoordiantorNodeSoftware(String id, Logger logger, ZigBeeSensorNode hardware,
+			ShanksSimulation simulation) {
 		super(id, logger);
 		this.hardware = hardware;
 		this.hardware.setSoftware(this);
+		this.sim = simulation;
+		// TODO implement this
+
+//		// Initialize system functions and templates
+//		SPINModuleRegistry.get().init();
+//
+//		// Load main file
+//		String url = "/media/Datos/ontologies/Diagnosis Ontology SpecGen/Diagnosis.owl";
+//		this.getLogger().info("Loading ontology from: " + url);
+//		Model baseModel = ModelFactory.createDefaultModel();
+//		// Model baseModel =
+//		// ModelFactory.createDefaultModel(ReificationStyle.Minimal);
+//		baseModel.read(url);
+//
+//		// Initialize system functions and templates
+//		SPINModuleRegistry.get().init();
 	}
 
 	/*
@@ -69,9 +88,13 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 	@Override
 	public void checkMail() {
 		List<Message> inbox = this.getInbox();
-		if (inbox.size() > 0) {
-			this.getLogger().fine("BaseStation has received " + inbox.size() + " messages in the last step.");
-			inbox.clear();
+		for (Message msg : inbox) {
+			String content = (String) msg.getPropCont();
+			this.getLogger().fine("Content: " + content);
+			String id = msg.getMsgId();
+			this.getLogger().fine("MsgID: " + id);
+			String reply = msg.getInReplyTo();
+			this.getLogger().fine("InReplyTo: " + reply);
 		}
 	}
 
@@ -91,7 +114,7 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 	/**
 	 * @return the hardware
 	 */
-	public ZigBeeCoordinatorNode getHardware() {
+	public ZigBeeSensorNode getHardware() {
 		return hardware;
 	}
 
@@ -99,7 +122,7 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 	 * @param hardware
 	 *            the hardware to set
 	 */
-	public void setHardware(ZigBeeCoordinatorNode hardware) {
+	public void setHardware(ZigBeeSensorNode hardware) {
 		this.hardware = hardware;
 	}
 

@@ -13,7 +13,7 @@
  * Contributors:
  *     alvarocarrera - initial API and implementation
  ******************************************************************************/
-package es.upm.dit.gsi.shanks.wsn;
+package es.upm.dit.gsi.shanks.wsn.utils;
 
 import java.io.File;
 import java.io.IOException;

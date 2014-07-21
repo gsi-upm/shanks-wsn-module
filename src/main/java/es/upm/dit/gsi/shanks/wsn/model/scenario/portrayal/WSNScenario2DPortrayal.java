@@ -30,9 +30,7 @@ import es.upm.dit.gsi.shanks.model.scenario.portrayal.Scenario2DPortrayal;
 import es.upm.dit.gsi.shanks.model.scenario.portrayal.ScenarioPortrayal;
 import es.upm.dit.gsi.shanks.wsn.agent.TargetAgent;
 import es.upm.dit.gsi.shanks.wsn.agent.portrayal.TargetAgent2DPortrayal;
-import es.upm.dit.gsi.shanks.wsn.model.element.device.ZigBeeCoordinatorNode;
 import es.upm.dit.gsi.shanks.wsn.model.element.device.ZigBeeSensorNode;
-import es.upm.dit.gsi.shanks.wsn.model.element.device.portrayal.BaseStation2DPortrayal;
 import es.upm.dit.gsi.shanks.wsn.model.element.device.portrayal.SensorNode2DPortrayal;
 import es.upm.dit.gsi.shanks.wsn.model.element.link.RoutePathLink;
 import es.upm.dit.gsi.shanks.wsn.model.element.link.WifiLink;
@@ -97,7 +95,7 @@ public class WSNScenario2DPortrayal extends Scenario2DPortrayal {
 			}
 		}
 
-		ZigBeeCoordinatorNode base = (ZigBeeCoordinatorNode) this.getScenario().getNetworkElement("base-station");
+		ZigBeeSensorNode base = (ZigBeeSensorNode) this.getScenario().getNetworkElement("base-station");
 		this.situateDevice(base, base.getPosition().x, base.getPosition().y);
 
 		for (Entry<String, NetworkElement> entry : elements.entrySet()) {
@@ -127,7 +125,6 @@ public class WSNScenario2DPortrayal extends Scenario2DPortrayal {
 
 			// Portrayals for devices
 			devicePortrayal.setPortrayalForClass(ZigBeeSensorNode.class, new SensorNode2DPortrayal());
-			devicePortrayal.setPortrayalForClass(ZigBeeCoordinatorNode.class, new BaseStation2DPortrayal());
 			devicePortrayal.setPortrayalForClass(TargetAgent.class, new TargetAgent2DPortrayal());
 
 			// Portrayals for links
