@@ -33,7 +33,7 @@ import es.upm.dit.gsi.shanks.wsn.agent.portrayal.TargetAgent2DPortrayal;
 import es.upm.dit.gsi.shanks.wsn.model.element.device.ZigBeeSensorNode;
 import es.upm.dit.gsi.shanks.wsn.model.element.device.portrayal.SensorNode2DPortrayal;
 import es.upm.dit.gsi.shanks.wsn.model.element.link.RoutePathLink;
-import es.upm.dit.gsi.shanks.wsn.model.element.link.WifiLink;
+import es.upm.dit.gsi.shanks.wsn.model.element.link.SensorLink;
 import es.upm.dit.gsi.shanks.wsn.model.element.link.portrayal.WirelessLink2DPortrayal;
 
 /**
@@ -101,7 +101,7 @@ public class WSNScenario2DPortrayal extends Scenario2DPortrayal {
 		for (Entry<String, NetworkElement> entry : elements.entrySet()) {
 			NetworkElement element = entry.getValue();
 			Class<? extends NetworkElement> cl = element.getClass();
-			if (cl.equals(RoutePathLink.class) || cl.equals(WifiLink.class)) {
+			if (cl.equals(RoutePathLink.class) || cl.equals(SensorLink.class)) {
 				Link link = (Link) element;
 				this.drawLink(link);
 			}

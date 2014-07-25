@@ -26,7 +26,7 @@ import sim.portrayal.network.EdgeDrawInfo2D;
 import es.upm.dit.gsi.shanks.model.element.link.Link;
 import es.upm.dit.gsi.shanks.model.element.link.portrayal.Link2DPortrayal;
 import es.upm.dit.gsi.shanks.wsn.model.element.link.RoutePathLink;
-import es.upm.dit.gsi.shanks.wsn.model.element.link.WifiLink;
+import es.upm.dit.gsi.shanks.wsn.model.element.link.SensorLink;
 
 /**
  * Project: shanks-han-module File:
@@ -62,7 +62,7 @@ public class WirelessLink2DPortrayal extends Link2DPortrayal {
 
 		Link link = (Link) e.getInfo();
 		Color color = null;
-		if (link.getClass().equals(WifiLink.class)) {
+		if (link.getClass().equals(SensorLink.class)) {
 			color = Color.green;
 		} else if (link.getClass().equals(RoutePathLink.class)) {
 			color = Color.black;

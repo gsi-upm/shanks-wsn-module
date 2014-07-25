@@ -34,7 +34,7 @@ import es.upm.dit.gsi.shanks.model.scenario.portrayal.Scenario3DPortrayal;
 import es.upm.dit.gsi.shanks.wsn.model.element.device.Battery;
 import es.upm.dit.gsi.shanks.wsn.model.element.device.ZigBeeSensorNode;
 import es.upm.dit.gsi.shanks.wsn.model.element.link.RoutePathLink;
-import es.upm.dit.gsi.shanks.wsn.model.element.link.WifiLink;
+import es.upm.dit.gsi.shanks.wsn.model.element.link.SensorLink;
 import es.upm.dit.gsi.shanks.wsn.model.scenario.portrayal.WSNScenario2DPortrayal;
 import es.upm.dit.gsi.shanks.wsn.utils.dijkstra.Dijkstra;
 import es.upm.dit.gsi.shanks.wsn.utils.dijkstra.Edge;
@@ -161,7 +161,7 @@ public class WSNScenario extends Scenario {
 		Double2D pos = new Double2D(width / 2, height / 2);
 
 		Battery battery = Battery.getInfiniteBattery();
-		ZigBeeSensorNode base = new ZigBeeSensorNode("base-station", "OK", false, logger, pos, battery);
+		ZigBeeSensorNode base = new ZigBeeSensorNode("base-station", "OK", true, logger, pos, battery);
 		this.addNetworkElement(base);
 
 		List<ZigBeeSensorNode> heads = new ArrayList<ZigBeeSensorNode>();
@@ -275,7 +275,7 @@ public class WSNScenario extends Scenario {
 				hlist.add(head);
 				this.moveInRange(sensor, hlist, null, rangeRadioDistance);
 				head = this.getClusterHead(sensor, heads);
-				WifiLink wifiLink = new WifiLink("wifi-" + sensor.getID(), "OK", 2, this.getLogger());
+				SensorLink wifiLink = new SensorLink("wifi-" + sensor.getID(), "OK", 2, this.getLogger());
 				wifiLink.connectDevices(sensor, head);
 				sensor.setPath2Sink(wifiLink);
 				this.addNetworkElement(wifiLink);
@@ -290,7 +290,7 @@ public class WSNScenario extends Scenario {
 				hlist.add(head);
 				this.moveInRange(sensor, hlist, null, rangeRadioDistance);
 				head = this.getClusterHead(sensor, heads);
-				WifiLink wifiLink = new WifiLink("wifi-" + sensor.getID(), "OK", 2, this.getLogger());
+				SensorLink wifiLink = new SensorLink("wifi-" + sensor.getID(), "OK", 2, this.getLogger());
 				wifiLink.connectDevices(sensor, head);
 				sensor.setPath2Sink(wifiLink);
 				this.addNetworkElement(wifiLink);

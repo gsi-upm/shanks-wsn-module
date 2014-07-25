@@ -220,7 +220,7 @@ public class ZigBeeSensorNodeSofware extends SimpleShanksAgent implements Percip
 			this.getHardware().getCpu().incrementLoad(0.2);
 			this.getHardware().getMemory().incrementLoad(0.1);
 			this.getHardware().setDetecting(true);
-			this.getLogger().info("Target detected by sensor " + this.getHardware().getID());
+			this.getLogger().fine("Target detected by sensor " + this.getHardware().getID());
 			this.sendDetectionMessage(simulation);
 
 			// Adjust variables
@@ -247,7 +247,7 @@ public class ZigBeeSensorNodeSofware extends SimpleShanksAgent implements Percip
 	private void consumeReaminingTime(boolean idle) {
 		double remainingTime = this.stepTime - this.consumedTimeInStep;
 		if (remainingTime < 0) {
-			this.getLogger().info(this.getID() + " consuming more time than stepTime! -> " + this.consumedTimeInStep);
+			this.getLogger().fine(this.getID() + " consuming more time than stepTime! -> " + this.consumedTimeInStep);
 			if (idle) {
 				this.getHardware()
 						.getBattery()

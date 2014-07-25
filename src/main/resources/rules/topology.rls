@@ -1,0 +1,76 @@
+http://www.gsi.dit.upm.es/ontologies/wsn-ndl#ZigBeeBaseStation
+---
+CONSTRUCT {
+    ?topology a wsn-ndl:WSNTopology .
+}
+WHERE {
+	?this nml-base:name ?name .
+    BIND (URI(CONCAT("http://www.gsi.dit.upm.es/ontologies/wsn-ndl#topology-wsn-", ?name)) AS ?topology) .
+}
+---
+http://www.gsi.dit.upm.es/ontologies/wsn-ndl#MicaZ
+---
+CONSTRUCT {
+    ?cluster a wsn-ndl:Cluster .
+    ?cluster nml-base:hasLink ?link .
+    ?cluster nml-base:hasNode ?node .
+    ?cluster nml-base:hasNode ?this .
+}
+WHERE {
+    ?this wsn-ndl:isRouter true .
+    ?this nml-base:name ?name .
+    ?this nml-base:isSink ?link .
+    ?link a wsn-ndl:SensorLink .
+    ?node nml-base:isSource ?link .
+    BIND (URI(CONCAT("http://www.gsi.dit.upm.es/ontologies/wsn-ndl#cluster-", ?name)) AS ?cluster) .
+}
+---
+http://www.gsi.dit.upm.es/ontologies/wsn-ndl#ZigBeeSensorNode
+---
+CONSTRUCT {
+    ?this a wsn-ndl:ZigBeeRouter .
+}
+WHERE {
+    ?this wsn-ndl:isRouter true .
+}
+---
+http://www.gsi.dit.upm.es/ontologies/wsn-ndl#ZigBeeRouter
+---
+CONSTRUCT {
+    ?this a wsn-ndl:ZigBeeLeafRouter .
+}
+WHERE {
+    {
+        SELECT ?this
+        WHERE {
+            ?path a wsn-ndl:RoutePathLink .
+            ?this nml-base:isSink ?path .
+        }
+        GROUP BY ?this
+        HAVING (COUNT(?path) = 0)
+    } .
+}
+---
+http://www.gsi.dit.upm.es/ontologies/wsn-ndl#ZigBeeLeafRouter
+---
+CONSTRUCT {
+    ?path a wsn-ndl:PathToBaseStation .
+    ?path nml-base:hasNode ?this .
+}
+WHERE {
+    ?this nml-base:name ?name .
+    BIND (URI(CONCAT("http://www.gsi.dit.upm.es/ontologies/wsn-ndl#pathToBaseStationFrom-", ?name)) AS ?path) .
+}
+---
+http://www.gsi.dit.upm.es/ontologies/wsn-ndl#ZigBeeRouter
+---
+CONSTRUCT {
+    ?path nml-base:hasNode ?nextRouter .
+    ?path nml-base:hasLink ?link .
+}
+WHERE {
+    ?path a wsn-ndl:PathToBaseStation .
+    ?path nml-base:hasNode ?this .
+    ?this nml-base:isSource ?link .
+    ?nextRouter nml-base:isSink ?link .
+}

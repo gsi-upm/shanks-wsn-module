@@ -24,7 +24,7 @@ import es.upm.dit.gsi.shanks.model.element.link.Link;
 
 /**
  * Project: wsn
- * File: es.upm.dit.gsi.shanks.wsn.model.element.link.SensorLink.java
+ * File: es.upm.dit.gsi.shanks.wsn.model.element.link.WifiLink.java
  * 
  * Grupo de Sistemas Inteligentes
  * Departamento de Ingeniería de Sistemas Telemáticos

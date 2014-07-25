@@ -129,7 +129,7 @@ public class WSNSimulationLauncher {
 
 		// ***************** END OF CONFIGURATION PARAMETERS*************
 		Logger logger = Logger.getLogger(scenarioName);
-		LogConfigurator.log2File(logger, "simulation", Level.OFF, Level.WARNING);
+		LogConfigurator.log2File(logger, "simulation", Level.OFF, Level.INFO);
 
 		String seedString = scenarioProperties.getProperty(WSNScenario.RANDOM_SEED);
 		long seed = new Integer(seedString);
