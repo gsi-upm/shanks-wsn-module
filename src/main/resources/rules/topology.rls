@@ -1,14 +1,15 @@
-http://www.gsi.dit.upm.es/ontologies/wsn-ndl#ZigBeeBaseStation
+http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#ZigBeeBaseStation
 ---
 CONSTRUCT {
     ?topology a wsn-ndl:WSNTopology .
 }
 WHERE {
-	?this nml-base:name ?name .
-    BIND (URI(CONCAT("http://www.gsi.dit.upm.es/ontologies/wsn-ndl#topology-wsn-", ?name)) AS ?topology) .
+	?this a wsn-ndl:ZigBeeBaseStation .
+    ?this nml-base:name ?name .
+    BIND (URI(CONCAT("http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#topology-wsn-", ?name)) AS ?topology) .
 }
 ---
-http://www.gsi.dit.upm.es/ontologies/wsn-ndl#MicaZ
+http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#ZigBeeRouter
 ---
 CONSTRUCT {
     ?cluster a wsn-ndl:Cluster .
@@ -17,29 +18,21 @@ CONSTRUCT {
     ?cluster nml-base:hasNode ?this .
 }
 WHERE {
-    ?this wsn-ndl:isRouter true .
+    ?this a wsn-ndl:ZigBeeRouter .
     ?this nml-base:name ?name .
     ?this nml-base:isSink ?link .
     ?link a wsn-ndl:SensorLink .
     ?node nml-base:isSource ?link .
-    BIND (URI(CONCAT("http://www.gsi.dit.upm.es/ontologies/wsn-ndl#cluster-", ?name)) AS ?cluster) .
+    BIND (URI(CONCAT("http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#cluster-", ?name)) AS ?cluster) .
 }
 ---
-http://www.gsi.dit.upm.es/ontologies/wsn-ndl#ZigBeeSensorNode
----
-CONSTRUCT {
-    ?this a wsn-ndl:ZigBeeRouter .
-}
-WHERE {
-    ?this wsn-ndl:isRouter true .
-}
----
-http://www.gsi.dit.upm.es/ontologies/wsn-ndl#ZigBeeRouter
+http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#ZigBeeRouter
 ---
 CONSTRUCT {
     ?this a wsn-ndl:ZigBeeLeafRouter .
 }
 WHERE {
+	?this a wsn-ndl:ZigBeeRouter .
     {
         SELECT ?this
         WHERE {
@@ -51,26 +44,43 @@ WHERE {
     } .
 }
 ---
-http://www.gsi.dit.upm.es/ontologies/wsn-ndl#ZigBeeLeafRouter
+http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#ZigBeeRouter
 ---
 CONSTRUCT {
     ?path a wsn-ndl:PathToBaseStation .
     ?path nml-base:hasNode ?this .
+    ?path nml-base:hasTopology ?cluster .
 }
 WHERE {
+	?this a wsn-ndl:ZigBeeRouter .
     ?this nml-base:name ?name .
-    BIND (URI(CONCAT("http://www.gsi.dit.upm.es/ontologies/wsn-ndl#pathToBaseStationFrom-", ?name)) AS ?path) .
+    BIND (URI(CONCAT("http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#pathToBaseStationFrom-", ?name)) AS ?path) .
+    ?cluster a wsn-ndl:Cluster .
+    ?cluster nml-base:hasNode ?this .
 }
 ---
-http://www.gsi.dit.upm.es/ontologies/wsn-ndl#ZigBeeRouter
+http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#ZigBeeRouter
 ---
 CONSTRUCT {
     ?path nml-base:hasNode ?nextRouter .
     ?path nml-base:hasLink ?link .
 }
 WHERE {
+	?this a wsn-ndl:ZigBeeRouter .
     ?path a wsn-ndl:PathToBaseStation .
     ?path nml-base:hasNode ?this .
     ?this nml-base:isSource ?link .
     ?nextRouter nml-base:isSink ?link .
+}
+---
+http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#WSNTopology
+---
+CONSTRUCT {
+    ?this nml-base:hasLink ?path .
+    ?this nml-base:hasTopology ?cluster .
+}
+WHERE {
+	?this a wsn-ndl:WSNTopology .
+    ?cluster a wsn-ndl:Cluster .
+    ?path a wsn-ndl:PathToBaseStation .
 }
