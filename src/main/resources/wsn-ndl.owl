@@ -3,7 +3,6 @@
 
 <!DOCTYPE rdf:RDF [
     <!ENTITY sp "http://spinrdf.org/sp#" >
-    <!ENTITY spl "http://spinrdf.org/spl#" >
     <!ENTITY spin "http://spinrdf.org/spin#" >
     <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
     <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
@@ -11,26 +10,122 @@
     <!ENTITY nml-base "http://schemas.ogf.org/nml/2013/05/base#" >
     <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
     <!ENTITY indl "http://www.science.uva.nl/research/sne/indl#" >
-    <!ENTITY wsn-ndl "http://www.gsi.dit.upm.es/ontologies/wsn-ndl#" >
+    <!ENTITY b2d2-wsn "http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#" >
 ]>
 
 
-<rdf:RDF xmlns="http://www.gsi.dit.upm.es/ontologies/wsn-ndl#"
-     xml:base="http://www.gsi.dit.upm.es/ontologies/wsn-ndl"
+<rdf:RDF xmlns="http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#"
+     xml:base="http://www.gsi.dit.upm.es/ontologies/b2d2/wsn"
      xmlns:indl="http://www.science.uva.nl/research/sne/indl#"
      xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
      xmlns:nml-base="http://schemas.ogf.org/nml/2013/05/base#"
      xmlns:sp="http://spinrdf.org/sp#"
-     xmlns:spl="http://spinrdf.org/spl#"
      xmlns:owl="http://www.w3.org/2002/07/owl#"
      xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
      xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
      xmlns:spin="http://spinrdf.org/spin#"
-     xmlns:wsn-ndl="http://www.gsi.dit.upm.es/ontologies/wsn-ndl#">
-    <owl:Ontology rdf:about="http://www.gsi.dit.upm.es/ontologies/wsn-ndl">
-        <owl:imports rdf:resource="http://spinrdf.org/spin"/>
+     xmlns:b2d2-wsn="http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#">
+    <owl:Ontology rdf:about="http://www.gsi.dit.upm.es/ontologies/b2d2/wsn">
+        <owl:versionIRI rdf:resource="http://www.gsi.dit.upm.es/ontologies/b2d2/wsn/0.1.0"/>
         <owl:imports rdf:resource="http://www.science.uva.nl/research/sne/indl"/>
     </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#contains -->
+
+    <owl:ObjectProperty rdf:about="&b2d2-wsn;contains">
+        <rdfs:range rdf:resource="&b2d2-wsn;Message"/>
+        <rdfs:domain rdf:resource="&b2d2-wsn;Message"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#executesIn -->
+
+    <owl:ObjectProperty rdf:about="&b2d2-wsn;executesIn">
+        <rdfs:range rdf:resource="&nml-base;Node"/>
+        <rdfs:domain rdf:resource="&b2d2-wsn;Software"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#hosts -->
+
+    <owl:ObjectProperty rdf:about="&b2d2-wsn;hosts">
+        <rdfs:domain rdf:resource="&nml-base;Node"/>
+        <rdfs:range rdf:resource="&b2d2-wsn;Software"/>
+        <owl:inverseOf rdf:resource="&b2d2-wsn;executesIn"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#inReplyTo -->
+
+    <owl:ObjectProperty rdf:about="&b2d2-wsn;inReplyTo">
+        <rdfs:range rdf:resource="&b2d2-wsn;Message"/>
+        <rdfs:domain rdf:resource="&b2d2-wsn;Message"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#isReceivedBy -->
+
+    <owl:ObjectProperty rdf:about="&b2d2-wsn;isReceivedBy">
+        <rdfs:range rdf:resource="&b2d2-wsn;Actor"/>
+        <rdfs:domain rdf:resource="&b2d2-wsn;Message"/>
+        <owl:inverseOf rdf:resource="&b2d2-wsn;receives"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#isSentBy -->
+
+    <owl:ObjectProperty rdf:about="&b2d2-wsn;isSentBy">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:range rdf:resource="&b2d2-wsn;Actor"/>
+        <rdfs:domain rdf:resource="&b2d2-wsn;Message"/>
+        <owl:inverseOf rdf:resource="&b2d2-wsn;sends"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#receives -->
+
+    <owl:ObjectProperty rdf:about="&b2d2-wsn;receives">
+        <rdfs:domain rdf:resource="&b2d2-wsn;Actor"/>
+        <rdfs:range rdf:resource="&b2d2-wsn;Message"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#resendMessage -->
+
+    <owl:ObjectProperty rdf:about="&b2d2-wsn;resendMessage">
+        <rdfs:domain rdf:resource="&b2d2-wsn;Message"/>
+        <rdfs:range rdf:resource="&b2d2-wsn;Message"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#sends -->
+
+    <owl:ObjectProperty rdf:about="&b2d2-wsn;sends">
+        <rdf:type rdf:resource="&owl;InverseFunctionalProperty"/>
+        <rdfs:domain rdf:resource="&b2d2-wsn;Actor"/>
+        <rdfs:range rdf:resource="&b2d2-wsn;Message"/>
+    </owl:ObjectProperty>
     
 
 
@@ -45,11 +140,110 @@
     
 
 
-    <!-- http://www.gsi.dit.upm.es/ontologies/wsn-ndl#isRouter -->
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#batteryLevel -->
 
-    <owl:DatatypeProperty rdf:about="&wsn-ndl;isRouter">
-        <rdfs:domain rdf:resource="&wsn-ndl;ZigBeeSensorNode"/>
+    <owl:DatatypeProperty rdf:about="&b2d2-wsn;batteryLevel">
+        <rdfs:domain rdf:resource="&b2d2-wsn;Message"/>
+        <rdfs:range rdf:resource="&xsd;double"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#cpuLoad -->
+
+    <owl:DatatypeProperty rdf:about="&b2d2-wsn;cpuLoad">
+        <rdfs:domain rdf:resource="&b2d2-wsn;Message"/>
+        <rdfs:range rdf:resource="&xsd;double"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#emittedPower -->
+
+    <owl:DatatypeProperty rdf:about="&b2d2-wsn;emittedPower">
+        <rdfs:domain rdf:resource="&b2d2-wsn;Message"/>
+        <rdfs:range rdf:resource="&xsd;int"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#hasPerceptionRange -->
+
+    <owl:DatatypeProperty rdf:about="&b2d2-wsn;hasPerceptionRange">
+        <rdfs:domain rdf:resource="&b2d2-wsn;MotionSensor"/>
+        <rdfs:range rdf:resource="&xsd;double"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#isDetecting -->
+
+    <owl:DatatypeProperty rdf:about="&b2d2-wsn;isDetecting">
+        <rdfs:domain rdf:resource="&b2d2-wsn;Message"/>
         <rdfs:range rdf:resource="&xsd;boolean"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#isRouter -->
+
+    <owl:DatatypeProperty rdf:about="&b2d2-wsn;isRouter">
+        <rdfs:domain rdf:resource="&b2d2-wsn;ZigBeeSensorNode"/>
+        <rdfs:range rdf:resource="&xsd;boolean"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#memoryLoad -->
+
+    <owl:DatatypeProperty rdf:about="&b2d2-wsn;memoryLoad">
+        <rdfs:domain rdf:resource="&b2d2-wsn;Message"/>
+        <rdfs:range rdf:resource="&xsd;double"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#msgContent -->
+
+    <owl:DatatypeProperty rdf:about="&b2d2-wsn;msgContent">
+        <rdfs:domain rdf:resource="&b2d2-wsn;Message"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#msgCounter -->
+
+    <owl:DatatypeProperty rdf:about="&b2d2-wsn;msgCounter">
+        <rdfs:domain rdf:resource="&b2d2-wsn;Message"/>
+        <rdfs:range rdf:resource="&xsd;int"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#msgID -->
+
+    <owl:DatatypeProperty rdf:about="&b2d2-wsn;msgID">
+        <rdfs:domain rdf:resource="&b2d2-wsn;Message"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#temp -->
+
+    <owl:DatatypeProperty rdf:about="&b2d2-wsn;temp">
+        <rdfs:domain rdf:resource="&b2d2-wsn;Message"/>
+        <rdfs:range rdf:resource="&xsd;double"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#timestamp -->
+
+    <owl:DatatypeProperty rdf:about="&b2d2-wsn;timestamp">
+        <rdfs:domain rdf:resource="&b2d2-wsn;Message"/>
+        <rdfs:range rdf:resource="&xsd;long"/>
     </owl:DatatypeProperty>
     
 
@@ -65,52 +259,88 @@
     
 
 
-    <!-- http://www.gsi.dit.upm.es/ontologies/wsn-ndl#ATmega128L -->
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#ATmega128L -->
 
-    <owl:Class rdf:about="&wsn-ndl;ATmega128L">
+    <owl:Class rdf:about="&b2d2-wsn;ATmega128L">
         <rdfs:subClassOf rdf:resource="&indl;ProcessingComponent"/>
     </owl:Class>
     
 
 
-    <!-- http://www.gsi.dit.upm.es/ontologies/wsn-ndl#Cluster -->
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#Actor -->
 
-    <owl:Class rdf:about="&wsn-ndl;Cluster">
-        <rdfs:subClassOf rdf:resource="&wsn-ndl;StarTopology"/>
+    <owl:Class rdf:about="&b2d2-wsn;Actor"/>
+    
+
+
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#Agent -->
+
+    <owl:Class rdf:about="&b2d2-wsn;Agent">
+        <rdfs:subClassOf rdf:resource="&b2d2-wsn;Software"/>
     </owl:Class>
     
 
 
-    <!-- http://www.gsi.dit.upm.es/ontologies/wsn-ndl#MPR2400 -->
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#B2D2Agent -->
 
-    <owl:Class rdf:about="&wsn-ndl;MPR2400">
-        <rdfs:subClassOf rdf:resource="&wsn-ndl;Transceiver"/>
+    <owl:Class rdf:about="&b2d2-wsn;B2D2Agent">
+        <rdfs:subClassOf rdf:resource="&b2d2-wsn;Agent"/>
     </owl:Class>
     
 
 
-    <!-- http://www.gsi.dit.upm.es/ontologies/wsn-ndl#MicaZ -->
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#Cluster -->
 
-    <owl:Class rdf:about="&wsn-ndl;MicaZ">
-        <rdfs:subClassOf rdf:resource="&wsn-ndl;ZigBeeSensorNode"/>
+    <owl:Class rdf:about="&b2d2-wsn;Cluster">
+        <rdfs:subClassOf rdf:resource="&b2d2-wsn;StarTopology"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#Human -->
+
+    <owl:Class rdf:about="&b2d2-wsn;Human">
+        <rdfs:subClassOf rdf:resource="&b2d2-wsn;Actor"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#MPR2400 -->
+
+    <owl:Class rdf:about="&b2d2-wsn;MPR2400">
+        <rdfs:subClassOf rdf:resource="&b2d2-wsn;Transceiver"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#Message -->
+
+    <owl:Class rdf:about="&b2d2-wsn;Message"/>
+    
+
+
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#MicaZ -->
+
+    <owl:Class rdf:about="&b2d2-wsn;MicaZ">
+        <rdfs:subClassOf rdf:resource="&b2d2-wsn;ZigBeeSensorNode"/>
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="&indl;hasComponent"/>
-                <owl:onClass rdf:resource="&wsn-ndl;MPR2400"/>
+                <owl:onClass rdf:resource="&b2d2-wsn;MicaZMemory"/>
                 <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
             </owl:Restriction>
         </rdfs:subClassOf>
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="&indl;hasComponent"/>
-                <owl:onClass rdf:resource="&wsn-ndl;ATmega128L"/>
+                <owl:onClass rdf:resource="&b2d2-wsn;ATmega128L"/>
                 <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
             </owl:Restriction>
         </rdfs:subClassOf>
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="&indl;hasComponent"/>
-                <owl:onClass rdf:resource="&wsn-ndl;MicaZMemory"/>
+                <owl:onClass rdf:resource="&b2d2-wsn;MPR2400"/>
                 <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
             </owl:Restriction>
         </rdfs:subClassOf>
@@ -118,143 +348,173 @@
     
 
 
-    <!-- http://www.gsi.dit.upm.es/ontologies/wsn-ndl#MicaZMemory -->
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#MicaZMemory -->
 
-    <owl:Class rdf:about="&wsn-ndl;MicaZMemory">
+    <owl:Class rdf:about="&b2d2-wsn;MicaZMemory">
         <rdfs:subClassOf rdf:resource="&indl;MemoryComponent"/>
     </owl:Class>
     
 
 
-    <!-- http://www.gsi.dit.upm.es/ontologies/wsn-ndl#MotionSensor -->
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#MotionSensor -->
 
-    <owl:Class rdf:about="&wsn-ndl;MotionSensor">
-        <rdfs:subClassOf rdf:resource="&wsn-ndl;Sensor"/>
+    <owl:Class rdf:about="&b2d2-wsn;MotionSensor">
+        <rdfs:subClassOf rdf:resource="&b2d2-wsn;Sensor"/>
     </owl:Class>
     
 
 
-    <!-- http://www.gsi.dit.upm.es/ontologies/wsn-ndl#Panasonic_PIR_WL_Series -->
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#Panasonic_PIR_WL_Series -->
 
-    <owl:Class rdf:about="&wsn-ndl;Panasonic_PIR_WL_Series">
-        <rdfs:subClassOf rdf:resource="&wsn-ndl;MotionSensor"/>
+    <owl:Class rdf:about="&b2d2-wsn;Panasonic_PIR_WL_Series">
+        <owl:equivalentClass>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="&b2d2-wsn;hasPerceptionRange"/>
+                <owl:hasValue rdf:datatype="&xsd;decimal">5.0</owl:hasValue>
+            </owl:Restriction>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="&b2d2-wsn;MotionSensor"/>
     </owl:Class>
     
 
 
-    <!-- http://www.gsi.dit.upm.es/ontologies/wsn-ndl#PathToBaseStation -->
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#PathToBaseStation -->
 
-    <owl:Class rdf:about="&wsn-ndl;PathToBaseStation">
+    <owl:Class rdf:about="&b2d2-wsn;PathToBaseStation">
         <rdfs:subClassOf rdf:resource="&nml-base;LinkGroup"/>
     </owl:Class>
     
 
 
-    <!-- http://www.gsi.dit.upm.es/ontologies/wsn-ndl#RoutePathLink -->
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#RoutePathLink -->
 
-    <owl:Class rdf:about="&wsn-ndl;RoutePathLink">
+    <owl:Class rdf:about="&b2d2-wsn;RoutePathLink">
         <rdfs:subClassOf rdf:resource="&nml-base;Link"/>
     </owl:Class>
     
 
 
-    <!-- http://www.gsi.dit.upm.es/ontologies/wsn-ndl#Sensor -->
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#Sensor -->
 
-    <owl:Class rdf:about="&wsn-ndl;Sensor">
+    <owl:Class rdf:about="&b2d2-wsn;Sensor">
         <rdfs:subClassOf rdf:resource="&indl;NodeComponent"/>
     </owl:Class>
     
 
 
-    <!-- http://www.gsi.dit.upm.es/ontologies/wsn-ndl#SensorLink -->
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#SensorLink -->
 
-    <owl:Class rdf:about="&wsn-ndl;SensorLink">
+    <owl:Class rdf:about="&b2d2-wsn;SensorLink">
         <rdfs:subClassOf rdf:resource="&nml-base;Link"/>
     </owl:Class>
     
 
 
-    <!-- http://www.gsi.dit.upm.es/ontologies/wsn-ndl#StarTopology -->
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#Software -->
 
-    <owl:Class rdf:about="&wsn-ndl;StarTopology">
+    <owl:Class rdf:about="&b2d2-wsn;Software">
+        <rdfs:subClassOf rdf:resource="&b2d2-wsn;Actor"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#StarTopology -->
+
+    <owl:Class rdf:about="&b2d2-wsn;StarTopology">
         <rdfs:subClassOf rdf:resource="&nml-base;Topology"/>
     </owl:Class>
     
 
 
-    <!-- http://www.gsi.dit.upm.es/ontologies/wsn-ndl#Transceiver -->
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#Transceiver -->
 
-    <owl:Class rdf:about="&wsn-ndl;Transceiver">
+    <owl:Class rdf:about="&b2d2-wsn;Transceiver">
         <rdfs:subClassOf rdf:resource="&indl;NodeComponent"/>
     </owl:Class>
     
 
 
-    <!-- http://www.gsi.dit.upm.es/ontologies/wsn-ndl#TreeTopology -->
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#TreeTopology -->
 
-    <owl:Class rdf:about="&wsn-ndl;TreeTopology">
+    <owl:Class rdf:about="&b2d2-wsn;TreeTopology">
         <rdfs:subClassOf rdf:resource="&nml-base;Topology"/>
     </owl:Class>
     
 
 
-    <!-- http://www.gsi.dit.upm.es/ontologies/wsn-ndl#WSNTopology -->
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#WSNTopology -->
 
-    <owl:Class rdf:about="&wsn-ndl;WSNTopology">
-        <rdfs:subClassOf rdf:resource="&wsn-ndl;TreeTopology"/>
+    <owl:Class rdf:about="&b2d2-wsn;WSNTopology">
+        <rdfs:subClassOf rdf:resource="&b2d2-wsn;TreeTopology"/>
     </owl:Class>
     
 
 
-    <!-- http://www.gsi.dit.upm.es/ontologies/wsn-ndl#ZigBeeBaseStation -->
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#ZigBeeBaseStation -->
 
-    <owl:Class rdf:about="&wsn-ndl;ZigBeeBaseStation">
+    <owl:Class rdf:about="&b2d2-wsn;ZigBeeBaseStation">
         <rdfs:subClassOf rdf:resource="&nml-base;Node"/>
     </owl:Class>
     
 
 
-    <!-- http://www.gsi.dit.upm.es/ontologies/wsn-ndl#ZigBeeLeafRouter -->
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#ZigBeeLeafRouter -->
 
-    <owl:Class rdf:about="&wsn-ndl;ZigBeeLeafRouter">
-        <rdfs:subClassOf rdf:resource="&wsn-ndl;ZigBeeRouter"/>
+    <owl:Class rdf:about="&b2d2-wsn;ZigBeeLeafRouter">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&nml-base;isSource"/>
+                        <owl:someValuesFrom rdf:resource="&b2d2-wsn;RoutePathLink"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&nml-base;isSink"/>
+                        <owl:onClass rdf:resource="&b2d2-wsn;RoutePathLink"/>
+                        <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">0</owl:qualifiedCardinality>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="&b2d2-wsn;ZigBeeRouter"/>
     </owl:Class>
     
 
 
-    <!-- http://www.gsi.dit.upm.es/ontologies/wsn-ndl#ZigBeeRouter -->
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#ZigBeeMessage -->
 
-    <owl:Class rdf:about="&wsn-ndl;ZigBeeRouter">
-        <rdfs:subClassOf rdf:resource="&wsn-ndl;ZigBeeSensorNode"/>
+    <owl:Class rdf:about="&b2d2-wsn;ZigBeeMessage">
+        <owl:equivalentClass>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="&b2d2-wsn;isSentBy"/>
+                <owl:onClass rdf:resource="&b2d2-wsn;ZigBeeSoftware"/>
+                <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
+            </owl:Restriction>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="&b2d2-wsn;Message"/>
     </owl:Class>
     
 
 
-    <!-- http://www.gsi.dit.upm.es/ontologies/wsn-ndl#ZigBeeSensorNode -->
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#ZigBeeRouter -->
 
-    <owl:Class rdf:about="&wsn-ndl;ZigBeeSensorNode">
+    <owl:Class rdf:about="&b2d2-wsn;ZigBeeRouter">
+        <owl:equivalentClass>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="&b2d2-wsn;isRouter"/>
+                <owl:hasValue rdf:datatype="&xsd;boolean">true</owl:hasValue>
+            </owl:Restriction>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="&b2d2-wsn;ZigBeeSensorNode"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#ZigBeeSensorNode -->
+
+    <owl:Class rdf:about="&b2d2-wsn;ZigBeeSensorNode">
+        <owl:equivalentClass rdf:resource="&b2d2-wsn;ZigBeeSoftware"/>
         <rdfs:subClassOf rdf:resource="&nml-base;Node"/>
-        <rdfs:subClassOf>
-            <owl:Restriction>
-                <owl:onProperty rdf:resource="&indl;hasComponent"/>
-                <owl:onClass rdf:resource="&indl;MemoryComponent"/>
-                <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
-            </owl:Restriction>
-        </rdfs:subClassOf>
-        <rdfs:subClassOf>
-            <owl:Restriction>
-                <owl:onProperty rdf:resource="&indl;hasComponent"/>
-                <owl:onClass rdf:resource="&wsn-ndl;Transceiver"/>
-                <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
-            </owl:Restriction>
-        </rdfs:subClassOf>
-        <rdfs:subClassOf>
-            <owl:Restriction>
-                <owl:onProperty rdf:resource="&indl;hasComponent"/>
-                <owl:onClass rdf:resource="&wsn-ndl;Sensor"/>
-                <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
-            </owl:Restriction>
-        </rdfs:subClassOf>
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="&indl;hasComponent"/>
@@ -262,6 +522,35 @@
                 <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
             </owl:Restriction>
         </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="&indl;hasComponent"/>
+                <owl:onClass rdf:resource="&b2d2-wsn;Transceiver"/>
+                <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="&indl;hasComponent"/>
+                <owl:onClass rdf:resource="&b2d2-wsn;Sensor"/>
+                <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="&indl;hasComponent"/>
+                <owl:onClass rdf:resource="&indl;MemoryComponent"/>
+                <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#ZigBeeSoftware -->
+
+    <owl:Class rdf:about="&b2d2-wsn;ZigBeeSoftware">
+        <rdfs:subClassOf rdf:resource="&b2d2-wsn;Software"/>
     </owl:Class>
 </rdf:RDF>
 
