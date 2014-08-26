@@ -42,10 +42,17 @@ import com.hp.hpl.jena.ontology.Individual;
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntModelSpec;
 import com.hp.hpl.jena.query.Query;
+import com.hp.hpl.jena.query.QueryExecution;
+import com.hp.hpl.jena.query.QueryExecutionFactory;
+import com.hp.hpl.jena.query.ResultSet;
+import com.hp.hpl.jena.query.ResultSetFormatter;
+import com.hp.hpl.jena.rdf.model.InfModel;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.Resource;
+import com.hp.hpl.jena.reasoner.Reasoner;
+import com.hp.hpl.jena.reasoner.ValidityReport;
 
 import es.upm.dit.gsi.shanks.ShanksSimulation;
 import es.upm.dit.gsi.shanks.agent.SimpleShanksAgent;
@@ -55,6 +62,7 @@ import es.upm.dit.gsi.shanks.model.element.link.Link;
 import es.upm.dit.gsi.shanks.wsn.model.element.device.ZigBeeSensorNode;
 import es.upm.dit.gsi.shanks.wsn.model.element.link.RoutePathLink;
 import es.upm.dit.gsi.shanks.wsn.model.element.link.SensorLink;
+import es.upm.dit.gsi.shanks.wsn.model.scenario.WSNScenario;
 
 /**
  * Project: shanks-wsn-module File:
@@ -82,6 +90,8 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 	private ShanksSimulation sim;
 
 	private OntModel model;
+
+	private Individual baseStationB2D2Agent;
 	/**
 	 * Constructor
 	 * 
@@ -95,46 +105,164 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 		this.hardware = hardware;
 		this.hardware.setSoftware(this);
 		this.sim = simulation;
-
-		// TODO implement this
-		long startTime = System.currentTimeMillis();
 		try {
-			this.populateOntology(this.sim);
+			// Initialize system functions and templates
+			SPINModuleRegistry.get().init();
+
+			HashMap<String, NetworkElement> elements = sim.getScenario().getCurrentElements();
+			String ontologyURI = (String) this.sim.getScenario().getProperties().get(WSNScenario.ONTOLOGY_URI);
+			// Create individuals
+			this.getLogger().info("Loading ontology from: " + ontologyURI);
+			model = this.loadModelWithImports(ontologyURI);
+
+			this.populateOntology(model, elements);
+
+			model.setNsPrefix("nml-base", Vocabulary.nmlBaseNS);
+			model.setNsPrefix("wsn-ndl", Vocabulary.wsnNdlNS);
+			model.setNsPrefix("b2d2-wsn", Vocabulary.diagnosisNS);
+			model.removeNsPrefix("");
+
+			// SPIN RULES
+			String rulesFile = (String) this.sim.getScenario().getProperties().get(WSNScenario.TOPOLOGY_RULES_FILE);
+			this.loadSPINRules(rulesFile, model);
+
+			SPINModuleRegistry.get().registerAll(model, null);
+
+			this.getLogger().info("Size before inference: " + model.size());
+			SPINInferences.run(model, model, null, null, false, null);
+			this.getLogger().info("Size after inference: " + model.size());
+
+			this.writeModelInFiles(model);
+
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
+			this.getLogger().severe("File not found: " + e.getMessage());
+			e.printStackTrace();
+		} catch (IOException e) {
+			this.getLogger().severe("Problem saving model in OWL file.");
+			e.printStackTrace();
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		long endTime = System.currentTimeMillis();
-		this.getLogger().info("Time in milliseconds: " + (endTime - startTime));
 	}
 
 	/**
-	 * @param sim
+	 * @param model
+	 * @throws IOException
+	 */
+	private void writeModelInFiles(OntModel model) throws IOException {
+		FileWriter fw = new FileWriter("src/main/resources/result.rdf");
+		model.write(fw);
+		fw.close();
+
+		fw = new FileWriter("/home/alvaro/TBCFreeWorkspace/wsn-ndl/result.rdf");
+		model.write(fw);
+		fw.close();
+	}
+
+	/**
+	 * @param model
+	 */
+	private void performQueries(OntModel model) {
+
+		String query = "SELECT (COUNT(?node) AS ?cluster) WHERE { ?node a wsn-ndl:Cluster . }";
+		Query arqQuery = ARQFactory.get().createQuery(model, query);
+		QueryExecution qExe = QueryExecutionFactory.create(arqQuery, model);
+		ResultSet results = qExe.execSelect();
+		ResultSetFormatter.out(System.out, results);
+		/**
+		 *
+		 */
+		query = "SELECT (COUNT(?node) AS ?wsnTopology) WHERE { ?node a wsn-ndl:WSNTopology . }";
+		arqQuery = ARQFactory.get().createQuery(model, query);
+		qExe = QueryExecutionFactory.create(arqQuery, model);
+		results = qExe.execSelect();
+		ResultSetFormatter.out(System.out, results);
+		/**
+		 *
+		 */
+		query = "SELECT (COUNT(?node) AS ?router) WHERE { ?node a wsn-ndl:ZigBeeRouter . }";
+		arqQuery = ARQFactory.get().createQuery(model, query);
+		qExe = QueryExecutionFactory.create(arqQuery, model);
+		results = qExe.execSelect();
+		ResultSetFormatter.out(System.out, results);
+		/**
+		 *
+		 */
+		query = "SELECT (COUNT(?node) AS ?leafRouters) WHERE { ?node a wsn-ndl:ZigBeeLeafRouter . }";
+		arqQuery = ARQFactory.get().createQuery(model, query);
+		qExe = QueryExecutionFactory.create(arqQuery, model);
+		results = qExe.execSelect();
+		ResultSetFormatter.out(System.out, results);
+		/**
+		 *
+		 */
+		query = "SELECT (COUNT(?node) AS ?message) WHERE { ?node a b2d2-wsn:ZigBeeMessage . }";
+		arqQuery = ARQFactory.get().createQuery(model, query);
+		qExe = QueryExecutionFactory.create(arqQuery, model);
+		results = qExe.execSelect();
+		ResultSetFormatter.out(System.out, results);
+		/**
+		 *
+		 */
+		query = "SELECT (COUNT(?node) AS ?motionSensor) WHERE { ?node a b2d2-wsn:MotionSensor . }";
+		arqQuery = ARQFactory.get().createQuery(model, query);
+		qExe = QueryExecutionFactory.create(arqQuery, model);
+		results = qExe.execSelect();
+		ResultSetFormatter.out(System.out, results);
+		/**
+		 *
+		 */
+		query = "SELECT (COUNT(?msg) AS ?receivedByB2D2Agent) WHERE { ?agent a wsn-ndl:ZigBeeBaseStation . ?msg wsn-ndl:isReceivedBy ?agent . }";
+		arqQuery = ARQFactory.get().createQuery(model, query);
+		qExe = QueryExecutionFactory.create(arqQuery, model);
+		results = qExe.execSelect();
+		ResultSetFormatter.out(System.out, results);
+		/**
+		 *
+		 */
+		query = "SELECT (COUNT(?msg) AS ?B2D2AgentReceives) WHERE { ?agent a wsn-ndl:ZigBeeBaseStation . ?agent wsn-ndl:receives ?msg . }";
+		arqQuery = ARQFactory.get().createQuery(model, query);
+		qExe = QueryExecutionFactory.create(arqQuery, model);
+		results = qExe.execSelect();
+		ResultSetFormatter.out(System.out, results);
+
+	}
+
+	/**
+	 * 
+	 * Check reasoning inference (no spin rules infereces, only OWL inferences
+	 * and restrictions)
+	 * 
+	 * @param model
+	 */
+	public void checkOntologyModelInconsistencies(OntModel model) {
+		Reasoner reasoner = model.getReasoner();
+		InfModel infmodel = ModelFactory.createInfModel(reasoner, model);
+
+		ValidityReport report = infmodel.validate();
+		if (!report.isValid()) {
+			this.getLogger().severe("Incosistent ontology -> isValid: " + report.isValid());
+		} else {
+			this.getLogger().severe("No incosistent ontology -> isValid: " + report.isValid());
+		}
+	}
+
+	/**
+	 * @param model
+	 * @param elements
 	 * @throws ShanksException
 	 * @throws FileNotFoundException
 	 */
-	private void populateOntology(ShanksSimulation sim) throws ShanksException, FileNotFoundException {
-		// Initialize system functions and templates
-		SPINModuleRegistry.get().init();
+	private void populateOntology(OntModel model, HashMap<String, NetworkElement> elements) throws ShanksException,
+			FileNotFoundException {
 
 		// TODO add this file as parameter
 		// Load main file
-		String url = "/media/Datos/git/shanks-wsn-module/src/main/resources/wsn-ndl.owl";
-		this.getLogger().info("Loading ontology from: " + url);
-		Model baseModel = ModelFactory.createDefaultModel();
-		// Model baseModel =
-		// ModelFactory.createDefaultModel(ReificationStyle.Minimal);
-		baseModel.read(url);
-
-		// Initialize system functions and templates
-		SPINModuleRegistry.get().init();
 
 		// Create OntModel with imports
-		model = JenaUtil.createOntologyModel(OntModelSpec.OWL_MEM, baseModel);
-		this.getLogger().info("Model loaded successfully...");
+		this.getLogger().info("Populating model...");
 
 		// Create an individual for devices
-		HashMap<String, NetworkElement> elements = sim.getScenario().getCurrentElements();
 		for (Entry<String, NetworkElement> entry : elements.entrySet()) {
 			NetworkElement element = entry.getValue();
 			if (element.getClass().equals(ZigBeeSensorNode.class) && element.getID().startsWith("sensor-")) {
@@ -179,12 +307,15 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 
 				// Motion Sensor properties
 
-			} else if (element.getClass().equals(ZigBeeSensorNode.class) && element.getID().startsWith("base")) {
+			} else if (element.getClass().equals(ZigBeeSensorNode.class) && element.getID().startsWith("base-station")) {
 				ZigBeeSensorNode device = (ZigBeeSensorNode) element;
 				String elementid = device.getID();
 				Individual baseStation = model
 						.createIndividual(Vocabulary.wsnNdlNS + elementid, Vocabulary.BaseStation);
 				baseStation.addProperty(Vocabulary.name, model.createTypedLiteral(elementid));
+
+				this.baseStationB2D2Agent = baseStation;
+
 				// BaseStation location
 				Individual location = model.createIndividual(Vocabulary.wsnNdlNS + "location-" + elementid,
 						Vocabulary.Location);
@@ -246,55 +377,22 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 			}
 		}
 
-		// Reasoner reasoner = ReasonerRegistry.getOWLReasoner();
-		// reasoner = reasoner.bindSchema(model);
-		// // Obtain standard OWL-DL spec and attach the reasoner
-		// OntModelSpec ontModelSpec = OntModelSpec.OWL_DL_MEM;
-		// ontModelSpec.setReasoner(reasoner);
-		// // Create ontology model with reasoner support
-		// model = ModelFactory.createOntologyModel(ontModelSpec, model);
-
-		// model = JenaUtil.createOntologyModel(OntModelSpec.OWL_MEM, model);
-
-		// TODO create network object groups for paths, clusters and more with
-		// rules
-
 		this.getLogger().info("All individuals created successfully...");
-
-		// SPIN RULES
-		this.getLogger().info("Start applying rules...");
-		String rulesFile = "src/main/resources/rules/topology.rls";
-		this.parseAndLoadSPINRules(model, rulesFile);
-
-		this.getLogger().info("Size before inference: " + model.size());
-		SPINInferences.run(model, model, null, null, false, null);
-		this.getLogger().info("Size after inference: " + model.size());
-
-		// String query = "SELECT ?node WHERE { ?node a wsn-ndl:ZigBeeRouter }";
-		// Query arqQuery = ARQFactory.get().createQuery(model, query);
-		//
-		// QueryExecution qExe = QueryExecutionFactory.create(arqQuery, model);
-		// ResultSet results = qExe.execSelect();
-		// ResultSetFormatter.out(System.out, results);
-
-		try {
-			model.write(new FileWriter("src/main/resources/result.rdf"));
-			model.write(new FileWriter("/home/alvaro/TBCFreeWorkspace/wsn-ndl/result.rdf"));
-		} catch (IOException e) {
-			this.getLogger().severe("Problem saving model in OWL file.");
-			e.printStackTrace();
-		}
 	}
+
 	/**
-	 * @param model
 	 * @param rulesFile
+	 * @param model
 	 * @throws FileNotFoundException
 	 */
-	private void parseAndLoadSPINRules(Model model, String rulesFile) throws FileNotFoundException {
+	private void loadSPINRules(String rulesFile, OntModel model) throws FileNotFoundException {
 
+		this.getLogger().fine("---> loadSPINRules(): Starting to load rules from " + rulesFile);
 		Scanner scanner = new Scanner(new File(rulesFile)).useDelimiter("\\n---\\n");
 
+		int i = 0;
 		while (scanner.hasNext()) {
+			i++;
 			String uri = scanner.next();
 			String rule = scanner.next();
 			Query arqQuery = ARQFactory.get().createQuery(model, rule);
@@ -303,8 +401,7 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 			Resource resource = model.getResource(uri);
 			resource.addProperty((Property) SPIN.rule, spinQuery);
 		}
-
-		SPINModuleRegistry.get().registerAll(model, null);
+		this.getLogger().info("<--- loadSPINRules(): " + i + " rules loaded from file: " + rulesFile);
 	}
 
 	/*
@@ -315,13 +412,70 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 	@Override
 	public void checkMail() {
 		List<Message> inbox = this.getInbox();
+
+		// TODO check lost messages with real emitted power
+
 		for (Message msg : inbox) {
-			String content = (String) msg.getPropCont();
-			this.getLogger().fine("Content: " + content);
-			String id = msg.getMsgId();
-			this.getLogger().fine("MsgID: " + id);
+			String lastContent = (String) msg.getPropCont();
+			this.getLogger().fine("Content: " + lastContent);
+			String lastId = msg.getMsgId();
+			this.getLogger().fine("MsgID: " + lastId);
 			String reply = msg.getInReplyTo();
 			this.getLogger().fine("InReplyTo: " + reply);
+
+			String[] contents = lastContent.split("&");
+			String[] ids = reply.split("&");
+			for (int i = 0; i < ids.length - 1; i++) {
+				ids[i] = ids[i + 1];
+			}
+			ids[ids.length - 1] = lastId;
+
+			Individual[] allMsgs = new Individual[ids.length];
+
+			for (int i = 0; i < contents.length; i++) {
+
+				String id = ids[i];
+				String content = contents[i];
+
+				String[] msgIdparts = id.split(":");
+				String sensorId = msgIdparts[0];
+				long step = Long.parseLong(msgIdparts[1]);
+				int msgCounter = Integer.parseInt(msgIdparts[2]);
+				int power = Integer.parseInt(msgIdparts[3]);
+
+				String[] contentData = content.split("/");
+				double cpu = Double.parseDouble(contentData[0].split(":")[1]);
+				double mem = Double.parseDouble(contentData[1].split(":")[1]);
+				double tmp = Double.parseDouble(contentData[2].split(":")[1]);
+				boolean detecting = Boolean.parseBoolean(contentData[3].split(":")[1]);
+				double bat = Double.parseDouble(contentData[4].split(":")[1]);
+
+				// Create individual
+				Individual sensor = model.getIndividual(Vocabulary.wsnNdlNS + sensorId);
+				Individual ontMsg = model.createIndividual(Vocabulary.diagnosisNS + sensorId + "_msgId-" + msgCounter,
+						Vocabulary.ZigBeeMessage);
+				ontMsg.addProperty(Vocabulary.msgContent, model.createTypedLiteral(content));
+				ontMsg.addProperty(Vocabulary.msgCounter, model.createTypedLiteral(msgCounter));
+				ontMsg.addProperty(Vocabulary.msgID, model.createTypedLiteral(id));
+				ontMsg.addProperty(Vocabulary.inReplyTo, model.createTypedLiteral(reply));
+				ontMsg.addProperty(Vocabulary.emittedPower, model.createTypedLiteral(power));
+				ontMsg.addProperty(Vocabulary.timemstamp, model.createTypedLiteral(step));
+				ontMsg.addProperty(Vocabulary.isSentBy, sensor);
+				ontMsg.addProperty(Vocabulary.cpuLoad, model.createTypedLiteral(cpu));
+				ontMsg.addProperty(Vocabulary.memoryLoad, model.createTypedLiteral(mem));
+				ontMsg.addProperty(Vocabulary.temp, model.createTypedLiteral(tmp));
+				ontMsg.addProperty(Vocabulary.isDetecting, model.createTypedLiteral(detecting));
+				ontMsg.addProperty(Vocabulary.batteryLevel, model.createTypedLiteral(bat));
+
+				for (int j = 0; j < i; j++) {
+					ontMsg.addProperty(Vocabulary.contains, allMsgs[j]);
+					sensor.addProperty(Vocabulary.receives, allMsgs[j]);
+				}
+
+				this.baseStationB2D2Agent.addProperty(Vocabulary.receives, ontMsg);
+				allMsgs[i] = ontMsg;
+			}
+
 		}
 	}
 
@@ -337,7 +491,18 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 		this.getLogger()
 				.finest("-> Reasoning cycle of " + this.getID() + " -> Step: " + simulation.schedule.getSteps());
 
-		SPINInferences.run(model, model, null, null, false, null);
+		if (simulation.getSchedule().getSteps() % 50 == 0) {
+			this.performQueries(model);
+			this.getLogger().info("Size before inference: " + model.size());
+			SPINInferences.run(model, model, null, null, false, null);
+			this.getLogger().info("Size after inference: " + model.size());
+			try {
+				this.writeModelInFiles(model);
+				this.performQueries(model);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	/**
@@ -353,6 +518,17 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 	 */
 	public void setHardware(ZigBeeSensorNode hardware) {
 		this.hardware = hardware;
+	}
+
+	/**
+	 * @param url
+	 * @return
+	 */
+	private OntModel loadModelWithImports(String url) {
+		Model baseModel = ModelFactory.createDefaultModel();
+		baseModel.read(url);
+		return JenaUtil.createOntologyModel(OntModelSpec.OWL_MEM, baseModel);
+
 	}
 
 }
