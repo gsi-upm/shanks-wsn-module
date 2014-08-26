@@ -26,6 +26,9 @@
      xmlns:spin="http://spinrdf.org/spin#"
      xmlns:b2d2-wsn="http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#">
     <owl:Ontology rdf:about="http://www.gsi.dit.upm.es/ontologies/b2d2/wsn">
+        <owl:imports rdf:resource="http://spinrdf.org/spin"/>
+        <owl:imports rdf:resource="http://topbraid.org/spin/owlrl"/>
+        <owl:imports rdf:resource="http://topbraid.org/spin/owlrl-all"/>
         <owl:versionIRI rdf:resource="http://www.gsi.dit.upm.es/ontologies/b2d2/wsn/0.1.0"/>
         <owl:imports rdf:resource="http://www.science.uva.nl/research/sne/indl"/>
     </owl:Ontology>
@@ -71,20 +74,11 @@
     
 
 
-    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#inReplyTo -->
-
-    <owl:ObjectProperty rdf:about="&b2d2-wsn;inReplyTo">
-        <rdfs:range rdf:resource="&b2d2-wsn;Message"/>
-        <rdfs:domain rdf:resource="&b2d2-wsn;Message"/>
-    </owl:ObjectProperty>
-    
-
-
     <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#isReceivedBy -->
 
     <owl:ObjectProperty rdf:about="&b2d2-wsn;isReceivedBy">
-        <rdfs:range rdf:resource="&b2d2-wsn;Actor"/>
-        <rdfs:domain rdf:resource="&b2d2-wsn;Message"/>
+        <rdfs:domain rdf:resource="&b2d2-wsn;Actor"/>
+        <rdfs:range rdf:resource="&b2d2-wsn;Message"/>
         <owl:inverseOf rdf:resource="&b2d2-wsn;receives"/>
     </owl:ObjectProperty>
     
@@ -172,6 +166,15 @@
     <owl:DatatypeProperty rdf:about="&b2d2-wsn;hasPerceptionRange">
         <rdfs:domain rdf:resource="&b2d2-wsn;MotionSensor"/>
         <rdfs:range rdf:resource="&xsd;double"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#inReplyTo -->
+
+    <owl:DatatypeProperty rdf:about="&b2d2-wsn;inReplyTo">
+        <rdfs:domain rdf:resource="&b2d2-wsn;Message"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
     </owl:DatatypeProperty>
     
 
@@ -284,6 +287,7 @@
     <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#B2D2Agent -->
 
     <owl:Class rdf:about="&b2d2-wsn;B2D2Agent">
+        <owl:equivalentClass rdf:resource="&b2d2-wsn;ZigBeeBaseStation"/>
         <rdfs:subClassOf rdf:resource="&b2d2-wsn;Agent"/>
     </owl:Class>
     
@@ -301,6 +305,14 @@
 
     <owl:Class rdf:about="&b2d2-wsn;Human">
         <rdfs:subClassOf rdf:resource="&b2d2-wsn;Actor"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#LostMessage -->
+
+    <owl:Class rdf:about="&b2d2-wsn;LostMessage">
+        <rdfs:subClassOf rdf:resource="&b2d2-wsn;Message"/>
     </owl:Class>
     
 
@@ -326,13 +338,6 @@
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="&indl;hasComponent"/>
-                <owl:onClass rdf:resource="&b2d2-wsn;MicaZMemory"/>
-                <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
-            </owl:Restriction>
-        </rdfs:subClassOf>
-        <rdfs:subClassOf>
-            <owl:Restriction>
-                <owl:onProperty rdf:resource="&indl;hasComponent"/>
                 <owl:onClass rdf:resource="&b2d2-wsn;ATmega128L"/>
                 <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
             </owl:Restriction>
@@ -341,6 +346,13 @@
             <owl:Restriction>
                 <owl:onProperty rdf:resource="&indl;hasComponent"/>
                 <owl:onClass rdf:resource="&b2d2-wsn;MPR2400"/>
+                <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="&indl;hasComponent"/>
+                <owl:onClass rdf:resource="&b2d2-wsn;MicaZMemory"/>
                 <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
             </owl:Restriction>
         </rdfs:subClassOf>
@@ -518,14 +530,14 @@
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="&indl;hasComponent"/>
-                <owl:onClass rdf:resource="&indl;ProcessingComponent"/>
+                <owl:onClass rdf:resource="&b2d2-wsn;Transceiver"/>
                 <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
             </owl:Restriction>
         </rdfs:subClassOf>
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="&indl;hasComponent"/>
-                <owl:onClass rdf:resource="&b2d2-wsn;Transceiver"/>
+                <owl:onClass rdf:resource="&indl;ProcessingComponent"/>
                 <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
             </owl:Restriction>
         </rdfs:subClassOf>
