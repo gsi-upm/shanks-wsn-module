@@ -61,6 +61,14 @@ public class WSNSimulationLauncher {
 		scenarioProperties.put(Scenario.SIMULATION_GUI, Scenario.SIMULATION_2D);
 		scenarioProperties.put(WSNScenario.RANDOM_SEED, "3");
 		/**
+		 * File that contains rules in .rls format
+		 */
+		scenarioProperties.put(WSNScenario.TOPOLOGY_RULES_FILE, "src/main/resources/rules/topology.rls");
+		/**
+		 * Ontology URI
+		 */
+		scenarioProperties.put(WSNScenario.ONTOLOGY_URI, "src/main/resources/b2d2-wsn.owl");
+		/**
 		 * Number of sensors in the simulation
 		 */
 		scenarioProperties.put(WSNScenario.SENSORS, "100");
