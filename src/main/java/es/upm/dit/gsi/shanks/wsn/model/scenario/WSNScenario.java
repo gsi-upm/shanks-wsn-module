@@ -67,6 +67,8 @@ public class WSNScenario extends Scenario {
 	public static final String SENSOR_WIFI_RANGE_PERCENTAGE = "SensorRangePctg";
 	public static final String MAX_NOISE_IN_DB = "MaxNoiseInDB";
 	public static final String MIN_NOISE_IN_DB = "MinNoiseInDB";
+	public static final String TOPOLOGY_RULES_FILE = "TopologyRulesFile";
+	public static final String ONTOLOGY_URI = "OntologyURI";
 	// TODO add parameters for consumption
 
 	private int sensorsNum;
@@ -266,14 +268,14 @@ public class WSNScenario extends Scenario {
 		pendingSensors.addAll(sensors);
 		pendingSensors.removeAll(heads);
 		int sensorCounter = 0;
-		rangeRadioDistance = (int) (rangeRadioDistance * sensorRange);
+		int effectiveRangeDistance = (int) (rangeRadioDistance * sensorRange);
 		for (int i = 0; i < clusterSize; i++) {
 			for (int j = 0; j < clusters; j++) {
 				ZigBeeSensorNode head = heads.get(j);
 				ZigBeeSensorNode sensor = this.getCloserSensor(head, pendingSensors);
 				List<ZigBeeSensorNode> hlist = new ArrayList<ZigBeeSensorNode>();
 				hlist.add(head);
-				this.moveInRange(sensor, hlist, null, rangeRadioDistance);
+				this.moveInRange(sensor, hlist, null, effectiveRangeDistance);
 				head = this.getClusterHead(sensor, heads);
 				SensorLink wifiLink = new SensorLink("wifi-" + sensor.getID(), "OK", 2, this.getLogger());
 				wifiLink.connectDevices(sensor, head);
@@ -288,7 +290,7 @@ public class WSNScenario extends Scenario {
 				ZigBeeSensorNode sensor = this.getCloserSensor(head, pendingSensors);
 				List<ZigBeeSensorNode> hlist = new ArrayList<ZigBeeSensorNode>();
 				hlist.add(head);
-				this.moveInRange(sensor, hlist, null, rangeRadioDistance);
+				this.moveInRange(sensor, hlist, null, effectiveRangeDistance);
 				head = this.getClusterHead(sensor, heads);
 				SensorLink wifiLink = new SensorLink("wifi-" + sensor.getID(), "OK", 2, this.getLogger());
 				wifiLink.connectDevices(sensor, head);
@@ -330,7 +332,7 @@ public class WSNScenario extends Scenario {
 			int rangeRadioDistance) throws ShanksException {
 		Double2D closestPos = this.getClosestNodePosition(node, heads, base);
 		Double2D originalPos = node.getPosition();
-		double speed = rangeRadioDistance / 5;
+		double speed = ((double)rangeRadioDistance) / 5;
 		Double2D currentPos = node.getPosition();
 		double distance = currentPos.distance(closestPos);
 
