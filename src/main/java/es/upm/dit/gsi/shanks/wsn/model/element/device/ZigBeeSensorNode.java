@@ -260,6 +260,53 @@ public class ZigBeeSensorNode extends Device {
 
 		return emissionConsumption;
 	}
+	
+
+
+	/**
+	 * @param sensor
+	 * @param noise
+	 *            in dB
+	 * @return in mA
+	 */
+	public int getEmmitedPowerToNode(ZigBeeSensorNode sensor, double noise) {
+		Double2D pos1 = this.getPosition();
+		Double2D pos2 = sensor.getPosition();
+		double distance = pos1.distance(pos2);
+		double distanceKm = distance / 1000;
+		double loss = 100 + (20 * Math.log10(distanceKm)); // in dB for 2,4GHz
+		double sensitivy = -90; // Sensitivity in dBm
+		// Emission power required to ensure the reception (in dBm)
+		double emisionPower = sensitivy + loss + noise;
+		int emittedPower = Integer.MAX_VALUE;
+
+		// Consumption criteria (in mA) - (emissionPower in dBm)
+		if (emisionPower < -24) {
+			emittedPower = -24;
+		} else if (emisionPower < -20) {
+			emittedPower = -20;
+		} else if (emisionPower < -18) {
+			emittedPower = -18;
+		} else if (emisionPower < -13) {
+			emittedPower = -13;
+		} else if (emisionPower < -10) {
+			emittedPower = -10;
+		} else if (emisionPower < -6) {
+			emittedPower = -6;
+		} else if (emisionPower < -2) {
+			emittedPower = -2;
+		} else if (emisionPower < 0) {
+			emittedPower = 0;
+		} else if (emisionPower < 3) {
+			emittedPower = 3;
+		} else if (emisionPower < 4) {
+			emittedPower = 4;
+		} else if (emisionPower < 5) {
+			emittedPower = 5;
+		}
+
+		return emittedPower;
+	}
 
 	/**
 	 * @return the cpu
