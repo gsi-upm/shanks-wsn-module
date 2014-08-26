@@ -120,6 +120,8 @@ public class ZigBeeSensorNodeSofware extends SimpleShanksAgent implements Percip
 		List<Message> inbox = this.getInbox();
 
 		List<Message> lostMsgs = new ArrayList<Message>();
+		
+		//TODO check lost messages with real emitted power
 		for (Message msg : inbox) {
 			double noise = this.getGaussianNoise();
 			if (noise > this.maxNoise) {
@@ -127,7 +129,7 @@ public class ZigBeeSensorNodeSofware extends SimpleShanksAgent implements Percip
 			}
 		}
 		if (lostMsgs.size() > 0 && inbox.size() > 0) {
-			this.getLogger().finer(this.getID() + "-> Ratio of lost messages: " + lostMsgs.size() + "/" + inbox.size());
+			this.getLogger().info(this.getID() + "-> Ratio of lost messages: " + lostMsgs.size() + "/" + inbox.size());
 		}
 		inbox.removeAll(lostMsgs);
 
@@ -203,8 +205,8 @@ public class ZigBeeSensorNodeSofware extends SimpleShanksAgent implements Percip
 			String content = (String) msg.getPropCont();
 			content = content + "&" + this.buildMessageContent(false, simulation);
 			newMsg.setPropCont(content);
-			newMsg.setMsgId(this.getHardware().getID() + ":" + simulation.schedule.getSteps() + ":" + this.msgCounter++);
-			newMsg.setInReplyTo(msg.getInReplyTo() + "/" + msg.getMsgId());
+			newMsg.setMsgId(this.getHardware().getID() + ":" + simulation.schedule.getSteps() + ":" + this.msgCounter++ + ":" + this.getMessageEmittedPower());
+			newMsg.setInReplyTo(msg.getInReplyTo() + "&" + msg.getMsgId());
 			newMsg = this.setReceiverInPath(newMsg);
 			this.sendPackage(newMsg);
 			this.getLogger().finest(
@@ -240,7 +242,6 @@ public class ZigBeeSensorNodeSofware extends SimpleShanksAgent implements Percip
 		}
 
 	}
-
 	/**
 	 * 
 	 */
@@ -267,7 +268,8 @@ public class ZigBeeSensorNodeSofware extends SimpleShanksAgent implements Percip
 	private void sendDetectionMessage(ShanksSimulation sim) {
 		Message msg = new Message();
 		String content = this.buildMessageContent(true, sim);
-		msg.setMsgId(this.getHardware().getID() + ":" + sim.schedule.getSteps() + ":" + this.msgCounter++);
+		msg.setMsgId(this.getHardware().getID() + ":" + sim.schedule.getSteps() + ":" + this.msgCounter++ + ":"
+				+ this.getMessageEmittedPower());
 		msg.setInReplyTo("TargetDetected");
 		msg.setPropCont(content);
 		msg = this.setReceiverInPath(msg);
@@ -280,17 +282,14 @@ public class ZigBeeSensorNodeSofware extends SimpleShanksAgent implements Percip
 	 * @return
 	 */
 	private String buildMessageContent(boolean detecting, ShanksSimulation sim) {
-		long step = sim.schedule.getSteps();
 		// Msg content ->
-		// CPU:80.0/MEM:50.0/TMP:50.0/D:T/BAT:80.15/STP:1030/S100:S101:S102:S103:S104
+		// CPU:80.0/MEM:50.0/TMP:50.0/D:T/BAT:80.15
 		ZigBeeSensorNode sensor = this.getHardware();
 		double roundedTemp = Math.round(sensor.getTemp() * 100.0) / 100.0;
 		double roundedcpu = Math.round(sensor.getCpu().getLoad() * 100.0) / 100.0;
 		double roundedMemory = Math.round(sensor.getMemory().getLoad() * 100.0) / 100.0;
-		String content = "CPU:" + roundedcpu + "/MEM:" + roundedMemory + "/TMP:"
-				+ roundedTemp + "/DET:T/BAT:" + sensor.getBattery().getCurrentChargePercentage() + "/STP:" + step;
-		String idNumber = this.getHardware().getID().split("-")[1];
-		content = content + "/S" + idNumber;
+		String content = "CPU:" + roundedcpu + "/MEM:" + roundedMemory + "/TMP:" + roundedTemp + "/DET:T/BAT:"
+				+ sensor.getBattery().getCurrentChargePercentage();
 		return content;
 	}
 
@@ -300,7 +299,7 @@ public class ZigBeeSensorNodeSofware extends SimpleShanksAgent implements Percip
 	private void sendPackage(Message msg) {
 		Battery battery = this.hardware.getBattery();
 		double time = this.getMessageProcessingTime(msg);
-		double current = this.getMessageEmissionCurrentConsumption(msg);
+		double current = this.getMessageEmissionCurrentConsumption();
 		battery.consume(current, time);
 		this.sendMsg(msg);
 		this.consumedTimeInStep += time;
@@ -327,10 +326,9 @@ public class ZigBeeSensorNodeSofware extends SimpleShanksAgent implements Percip
 	}
 
 	/**
-	 * @param msg
 	 * @return
 	 */
-	private double getMessageEmissionCurrentConsumption(Message msg) {
+	private double getMessageEmissionCurrentConsumption() {
 		Link link = this.hardware.getPath2sink();
 		List<Device> devices = link.getLinkedDevices();
 		int t = 0;
@@ -341,6 +339,21 @@ public class ZigBeeSensorNodeSofware extends SimpleShanksAgent implements Percip
 		double emissionCurrent = this.hardware.getRequiredCurrentForEmissionToNode(sensor, this.maxNoise);
 		double totalEmissionConsumption = emissionCurrent + cpuConsumption;
 		return totalEmissionConsumption;
+	}
+
+	/**
+	 * @return
+	 */
+	private int getMessageEmittedPower() {
+		Link link = this.hardware.getPath2sink();
+		List<Device> devices = link.getLinkedDevices();
+		int t = 0;
+		if (devices.get(0) == this.hardware) {
+			t = 1;
+		}
+		ZigBeeSensorNode sensor = (ZigBeeSensorNode) devices.get(t);
+		int emittedPower = this.hardware.getEmmitedPowerToNode(sensor, this.maxNoise);
+		return emittedPower;
 	}
 
 	/**
