@@ -29,8 +29,8 @@ import es.upm.dit.gsi.shanks.ShanksSimulation;
  * @author Álvaro Carrera Barroso
  * @email a.carrera@gsi.dit.upm.es
  * @twitter @alvarocarrera
- * @date 17/07/2014
- * @version 0.1
+ * @date 02/09/2014
+ * @version 0.2
  * 
  */
 public class CPU {
@@ -52,7 +52,12 @@ public class CPU {
 	 * @return the load
 	 */
 	public double getLoad() {
-		return load;
+		double aux = load + damagePercentage;
+		if (aux > 100.0) {
+			return 100.0;
+		} else {
+			return aux;
+		}
 	}
 	/**
 	 * @param load
@@ -98,6 +103,9 @@ public class CPU {
 	 *            the damaged to set
 	 */
 	public void setDamaged(boolean damaged) {
+		if (!this.damaged) {
+			this.damagePercentage = 0.0;
+		}
 		this.damaged = damaged;
 	}
 

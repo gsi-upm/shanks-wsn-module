@@ -19,15 +19,19 @@ package es.upm.dit.gsi.shanks.wsn.model.scenario;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Random;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import sim.util.Double2D;
 import es.upm.dit.gsi.shanks.exception.ShanksException;
+import es.upm.dit.gsi.shanks.model.element.NetworkElement;
 import es.upm.dit.gsi.shanks.model.element.device.Device;
-import es.upm.dit.gsi.shanks.model.event.failiure.Failure;
+import es.upm.dit.gsi.shanks.model.event.failure.Failure;
 import es.upm.dit.gsi.shanks.model.scenario.Scenario;
 import es.upm.dit.gsi.shanks.model.scenario.portrayal.Scenario2DPortrayal;
 import es.upm.dit.gsi.shanks.model.scenario.portrayal.Scenario3DPortrayal;
@@ -35,6 +39,7 @@ import es.upm.dit.gsi.shanks.wsn.model.element.device.Battery;
 import es.upm.dit.gsi.shanks.wsn.model.element.device.ZigBeeSensorNode;
 import es.upm.dit.gsi.shanks.wsn.model.element.link.RoutePathLink;
 import es.upm.dit.gsi.shanks.wsn.model.element.link.SensorLink;
+import es.upm.dit.gsi.shanks.wsn.model.failure.CpuHardwareFailure;
 import es.upm.dit.gsi.shanks.wsn.model.scenario.portrayal.WSNScenario2DPortrayal;
 import es.upm.dit.gsi.shanks.wsn.utils.dijkstra.Dijkstra;
 import es.upm.dit.gsi.shanks.wsn.utils.dijkstra.Edge;
@@ -163,7 +168,7 @@ public class WSNScenario extends Scenario {
 		Double2D pos = new Double2D(width / 2, height / 2);
 
 		Battery battery = Battery.getInfiniteBattery();
-		ZigBeeSensorNode base = new ZigBeeSensorNode("base-station", "OK", true, logger, pos, battery);
+		ZigBeeSensorNode base = new ZigBeeSensorNode("base-station", "OK", true, logger, pos, battery, rnd);
 		this.addNetworkElement(base);
 
 		List<ZigBeeSensorNode> heads = new ArrayList<ZigBeeSensorNode>();
@@ -172,11 +177,11 @@ public class WSNScenario extends Scenario {
 		// Look for the radio range with the given noise level
 		int rangeRadioDistance = 0;
 		Double2D orig = new Double2D(0, 0);
-		ZigBeeSensorNode auxNode = new ZigBeeSensorNode("aux", "OK", false, logger, orig, battery);
+		ZigBeeSensorNode auxNode = new ZigBeeSensorNode("aux", "OK", false, logger, orig, battery, rnd);
 		boolean inRange = true;
 		while (inRange == true) {
 			Double2D p = new Double2D(0, ++rangeRadioDistance);
-			ZigBeeSensorNode auxNode2 = new ZigBeeSensorNode("aux2", "OK", false, logger, p, battery);
+			ZigBeeSensorNode auxNode2 = new ZigBeeSensorNode("aux2", "OK", false, logger, p, battery, rnd);
 			double d = this.getPathCost(auxNode, auxNode2);
 			if (d == Double.MAX_VALUE) {
 				rangeRadioDistance = rangeRadioDistance - 5;
@@ -198,7 +203,7 @@ public class WSNScenario extends Scenario {
 				}
 			} while (map[h][w] == true);
 			battery = Battery.get2AABatteryAlkaline();
-			ZigBeeSensorNode node = new ZigBeeSensorNode("sensor-" + i, "OK", false, logger, pos, battery);
+			ZigBeeSensorNode node = new ZigBeeSensorNode("sensor-" + i, "OK", false, logger, pos, battery, rnd);
 			sensors.add(node);
 			this.addNetworkElement(node);
 		}
@@ -332,7 +337,7 @@ public class WSNScenario extends Scenario {
 			int rangeRadioDistance) throws ShanksException {
 		Double2D closestPos = this.getClosestNodePosition(node, heads, base);
 		Double2D originalPos = node.getPosition();
-		double speed = ((double)rangeRadioDistance) / 5;
+		double speed = ((double) rangeRadioDistance) / 5;
 		Double2D currentPos = node.getPosition();
 		double distance = currentPos.distance(closestPos);
 
@@ -490,8 +495,19 @@ public class WSNScenario extends Scenario {
 	 */
 	@Override
 	public void addPossibleFailures() {
-		// TODO Auto-generated method stub
+		HashMap<String, NetworkElement> elements = this.getCurrentElements();
+		List<Set<NetworkElement>> nodeSetsList = new ArrayList<Set<NetworkElement>>();
+		for (Entry<String, NetworkElement> entry : elements.entrySet()) {
+			NetworkElement element = entry.getValue();
+			if (element.getClass().equals(ZigBeeSensorNode.class) && !element.getID().startsWith("base-station")) {
+				Set<NetworkElement> nodeSet = new HashSet<NetworkElement>();
+				nodeSet.add(element);
+				nodeSetsList.add(nodeSet);
+			}
+		}
 
+		this.addPossibleFailure(CpuHardwareFailure.class, nodeSetsList);
+		// TODO add all failure for all nodes
 	}
 
 	/*

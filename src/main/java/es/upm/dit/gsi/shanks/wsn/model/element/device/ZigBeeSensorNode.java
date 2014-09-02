@@ -17,6 +17,8 @@
  */
 package es.upm.dit.gsi.shanks.wsn.model.element.device;
 
+import java.util.HashMap;
+import java.util.Random;
 import java.util.logging.Logger;
 
 import sim.util.Double2D;
@@ -41,6 +43,14 @@ import es.upm.dit.gsi.shanks.model.element.link.Link;
  */
 public class ZigBeeSensorNode extends Device {
 
+	// Possible states
+	public static final String CPU_DAMAGED_STATUS = "CpuDamaged";
+	public static final String BATTERY_DAMAGED_STATUS = "BatteryDamaged";
+	public static final String SENSOR_DAMAGED_STATUS = "SensorDamaged";
+	public static final String MEMORY_DAMAGED_STATUS = "MemoryDamaged";
+	public static final String EXTERNAL_DAMAGE_STATUS = "ExternalDamage";
+
+
 	private Double2D position;
 
 	private boolean isZigBeeRouter;
@@ -59,6 +69,8 @@ public class ZigBeeSensorNode extends Device {
 
 	private double temp;
 
+	private Random rnd;
+
 	/**
 	 * Constructor
 	 * 
@@ -67,10 +79,13 @@ public class ZigBeeSensorNode extends Device {
 	 * @param isGateway
 	 * @param logger
 	 * @param position
+	 * @param battery
+	 * @param rnd
 	 */
 	public ZigBeeSensorNode(String id, String initialState, boolean isGateway, Logger logger, Double2D position,
-			Battery battery) {
+			Battery battery, Random rnd) {
 		super(id, initialState, isGateway, logger);
+		this.rnd = rnd;
 		this.setPosition(position);
 		this.setZigBeeRouter(false);
 		this.setDetecting(false);
@@ -88,8 +103,7 @@ public class ZigBeeSensorNode extends Device {
 	 */
 	@Override
 	public void fillIntialProperties() {
-		// TODO Auto-generated method stub
-
+		// Nothing to do here, because properties are stored as attributes.
 	}
 
 	/*
@@ -99,10 +113,41 @@ public class ZigBeeSensorNode extends Device {
 	 */
 	@Override
 	public void checkProperties() throws ShanksException {
-		// TODO Auto-generated method stub
-
+		HashMap<String, Boolean> status = this.getStatus();
+		if (status.get(ZigBeeSensorNode.CPU_DAMAGED_STATUS)) {
+			double damage = this.rnd.nextDouble();
+			int intDamage = (int) (damage * 100);
+			damage = ((double) intDamage) / 100;
+			this.cpu.setDamagePercentage(damage);
+			this.getSoftware().getLogger()
+					.warning("Node: " + this.getID() + " -> CPU DAMAGED PERCENTAGE: " + this.cpu.getDamagePercentage());
+			this.cpu.setDamaged(true);
+		}
+		if (status.get(ZigBeeSensorNode.BATTERY_DAMAGED_STATUS)) {
+			double damage = this.rnd.nextDouble();
+			int intDamage = (int) (damage * 100);
+			damage = ((double) intDamage) / 100;
+			// TODO
+		}
+		if (status.get(ZigBeeSensorNode.MEMORY_DAMAGED_STATUS)) {
+			double damage = this.rnd.nextDouble();
+			int intDamage = (int) (damage * 100);
+			damage = ((double) intDamage) / 100;
+			// TODO
+		}
+		if (status.get(ZigBeeSensorNode.SENSOR_DAMAGED_STATUS)) {
+			double damage = this.rnd.nextDouble();
+			int intDamage = (int) (damage * 100);
+			damage = ((double) intDamage) / 100;
+			// TODO
+		}
+		if (status.get(ZigBeeSensorNode.EXTERNAL_DAMAGE_STATUS)) {
+			double damage = this.rnd.nextDouble();
+			int intDamage = (int) (damage * 100);
+			damage = ((double) intDamage) / 100;
+			// TODO
+		}
 	}
-
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -110,8 +155,9 @@ public class ZigBeeSensorNode extends Device {
 	 */
 	@Override
 	public void checkStatus() throws ShanksException {
-		// TODO Auto-generated method stub
-
+		if (!this.cpu.isDamaged()) {
+			this.updateStatusTo(ZigBeeSensorNode.CPU_DAMAGED_STATUS, false);
+		}
 	}
 
 	/*
@@ -122,7 +168,12 @@ public class ZigBeeSensorNode extends Device {
 	 */
 	@Override
 	public void setPossibleStates() {
-		// TODO Auto-generated method stub
+		this.addPossibleStatus(ZigBeeSensorNode.CPU_DAMAGED_STATUS);
+		this.addPossibleStatus(ZigBeeSensorNode.BATTERY_DAMAGED_STATUS);
+		this.addPossibleStatus(ZigBeeSensorNode.MEMORY_DAMAGED_STATUS);
+		this.addPossibleStatus(ZigBeeSensorNode.SENSOR_DAMAGED_STATUS);
+		this.addPossibleStatus(ZigBeeSensorNode.EXTERNAL_DAMAGE_STATUS);
+		this.addPossibleStatus("OK");
 
 	}
 
@@ -260,8 +311,6 @@ public class ZigBeeSensorNode extends Device {
 
 		return emissionConsumption;
 	}
-	
-
 
 	/**
 	 * @param sensor
