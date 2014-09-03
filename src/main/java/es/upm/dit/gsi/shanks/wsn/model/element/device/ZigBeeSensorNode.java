@@ -49,6 +49,7 @@ public class ZigBeeSensorNode extends Device {
 	public static final String SENSOR_DAMAGED_STATUS = "SensorDamaged";
 	public static final String MEMORY_DAMAGED_STATUS = "MemoryDamaged";
 	public static final String EXTERNAL_DAMAGE_STATUS = "ExternalDamage";
+	public static final String OK_READY = "OK&Ready";
 
 
 	private Double2D position;
@@ -148,6 +149,7 @@ public class ZigBeeSensorNode extends Device {
 			// TODO
 		}
 	}
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -173,8 +175,7 @@ public class ZigBeeSensorNode extends Device {
 		this.addPossibleStatus(ZigBeeSensorNode.MEMORY_DAMAGED_STATUS);
 		this.addPossibleStatus(ZigBeeSensorNode.SENSOR_DAMAGED_STATUS);
 		this.addPossibleStatus(ZigBeeSensorNode.EXTERNAL_DAMAGE_STATUS);
-		this.addPossibleStatus("OK");
-
+		this.addPossibleStatus(ZigBeeSensorNode.OK_READY);
 	}
 
 	/**

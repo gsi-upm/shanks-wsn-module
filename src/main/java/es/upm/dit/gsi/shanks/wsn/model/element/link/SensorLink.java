@@ -23,12 +23,10 @@ import es.upm.dit.gsi.shanks.exception.ShanksException;
 import es.upm.dit.gsi.shanks.model.element.link.Link;
 
 /**
- * Project: wsn
- * File: es.upm.dit.gsi.shanks.wsn.model.element.link.WifiLink.java
+ * Project: wsn File: es.upm.dit.gsi.shanks.wsn.model.element.link.WifiLink.java
  * 
- * Grupo de Sistemas Inteligentes
- * Departamento de Ingeniería de Sistemas Telemáticos
- * Universidad Politécnica de Madrid (UPM)
+ * Grupo de Sistemas Inteligentes Departamento de Ingeniería de Sistemas
+ * Telemáticos Universidad Politécnica de Madrid (UPM)
  * 
  * @author Álvaro Carrera Barroso
  * @email a.carrera@gsi.dit.upm.es
@@ -39,9 +37,11 @@ import es.upm.dit.gsi.shanks.model.element.link.Link;
  */
 public class SensorLink extends Link {
 
+	public static final String OK_READY = "OK&Ready";
+
 	/**
 	 * Constructor
-	 *
+	 * 
 	 * @param id
 	 * @param initialState
 	 * @param capacity
@@ -53,8 +53,11 @@ public class SensorLink extends Link {
 		// TODO Auto-generated constructor stub
 	}
 
-	/* (non-Javadoc)
-	 * @see es.upm.dit.gsi.shanks.model.element.NetworkElement#fillIntialProperties()
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * es.upm.dit.gsi.shanks.model.element.NetworkElement#fillIntialProperties()
 	 */
 	@Override
 	public void fillIntialProperties() {
@@ -62,7 +65,9 @@ public class SensorLink extends Link {
 
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see es.upm.dit.gsi.shanks.model.element.NetworkElement#checkProperties()
 	 */
 	@Override
@@ -71,7 +76,9 @@ public class SensorLink extends Link {
 
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see es.upm.dit.gsi.shanks.model.element.NetworkElement#checkStatus()
 	 */
 	@Override
@@ -80,13 +87,15 @@ public class SensorLink extends Link {
 
 	}
 
-	/* (non-Javadoc)
-	 * @see es.upm.dit.gsi.shanks.model.element.NetworkElement#setPossibleStates()
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * es.upm.dit.gsi.shanks.model.element.NetworkElement#setPossibleStates()
 	 */
 	@Override
 	public void setPossibleStates() {
-		// TODO Auto-generated method stub
-
+		this.addPossibleStatus(SensorLink.OK_READY);
 	}
 
 }

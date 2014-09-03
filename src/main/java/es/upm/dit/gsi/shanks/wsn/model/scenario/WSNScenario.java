@@ -168,7 +168,7 @@ public class WSNScenario extends Scenario {
 		Double2D pos = new Double2D(width / 2, height / 2);
 
 		Battery battery = Battery.getInfiniteBattery();
-		ZigBeeSensorNode base = new ZigBeeSensorNode("base-station", "OK", true, logger, pos, battery, rnd);
+		ZigBeeSensorNode base = new ZigBeeSensorNode("base-station", ZigBeeSensorNode.OK_READY, true, logger, pos, battery, rnd);
 		this.addNetworkElement(base);
 
 		List<ZigBeeSensorNode> heads = new ArrayList<ZigBeeSensorNode>();
@@ -177,11 +177,11 @@ public class WSNScenario extends Scenario {
 		// Look for the radio range with the given noise level
 		int rangeRadioDistance = 0;
 		Double2D orig = new Double2D(0, 0);
-		ZigBeeSensorNode auxNode = new ZigBeeSensorNode("aux", "OK", false, logger, orig, battery, rnd);
+		ZigBeeSensorNode auxNode = new ZigBeeSensorNode("aux", ZigBeeSensorNode.OK_READY, false, logger, orig, battery, rnd);
 		boolean inRange = true;
 		while (inRange == true) {
 			Double2D p = new Double2D(0, ++rangeRadioDistance);
-			ZigBeeSensorNode auxNode2 = new ZigBeeSensorNode("aux2", "OK", false, logger, p, battery, rnd);
+			ZigBeeSensorNode auxNode2 = new ZigBeeSensorNode("aux2", ZigBeeSensorNode.OK_READY, false, logger, p, battery, rnd);
 			double d = this.getPathCost(auxNode, auxNode2);
 			if (d == Double.MAX_VALUE) {
 				rangeRadioDistance = rangeRadioDistance - 5;
@@ -203,7 +203,7 @@ public class WSNScenario extends Scenario {
 				}
 			} while (map[h][w] == true);
 			battery = Battery.get2AABatteryAlkaline();
-			ZigBeeSensorNode node = new ZigBeeSensorNode("sensor-" + i, "OK", false, logger, pos, battery, rnd);
+			ZigBeeSensorNode node = new ZigBeeSensorNode("sensor-" + i, ZigBeeSensorNode.OK_READY, false, logger, pos, battery, rnd);
 			sensors.add(node);
 			this.addNetworkElement(node);
 		}
@@ -282,7 +282,7 @@ public class WSNScenario extends Scenario {
 				hlist.add(head);
 				this.moveInRange(sensor, hlist, null, effectiveRangeDistance);
 				head = this.getClusterHead(sensor, heads);
-				SensorLink wifiLink = new SensorLink("wifi-" + sensor.getID(), "OK", 2, this.getLogger());
+				SensorLink wifiLink = new SensorLink("wifi-" + sensor.getID(), SensorLink.OK_READY, 2, this.getLogger());
 				wifiLink.connectDevices(sensor, head);
 				sensor.setPath2Sink(wifiLink);
 				this.addNetworkElement(wifiLink);
@@ -297,7 +297,7 @@ public class WSNScenario extends Scenario {
 				hlist.add(head);
 				this.moveInRange(sensor, hlist, null, effectiveRangeDistance);
 				head = this.getClusterHead(sensor, heads);
-				SensorLink wifiLink = new SensorLink("wifi-" + sensor.getID(), "OK", 2, this.getLogger());
+				SensorLink wifiLink = new SensorLink("wifi-" + sensor.getID(), SensorLink.OK_READY, 2, this.getLogger());
 				wifiLink.connectDevices(sensor, head);
 				sensor.setPath2Sink(wifiLink);
 				this.addNetworkElement(wifiLink);
@@ -440,7 +440,7 @@ public class WSNScenario extends Scenario {
 		// Draw links
 		String linkName = "path-" + v1.toString() + "-" + v2.toString();
 		if (this.getNetworkElement(linkName) == null) {
-			RoutePathLink link = new RoutePathLink(linkName, "OK", 2, this.getLogger());
+			RoutePathLink link = new RoutePathLink(linkName, RoutePathLink.OK_READY, 2, this.getLogger());
 			Device device1 = (Device) this.getNetworkElement(v1.toString());
 			Device device2 = (Device) this.getNetworkElement(v2.toString());
 			link.connectDevices(device1, device2);
