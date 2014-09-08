@@ -163,7 +163,7 @@ public class ZigBeeSensorNodeSofware extends SimpleShanksAgent implements Percip
 					this.getID() + "-> Memory full -> Discarding " + discardMsgs + " messages in the queue.");
 		}
 		double memoryUsed = inbox.size() * memoryMsgSizePct;
-		this.getHardware().getMemory().incrementLoad(memoryUsed);
+		this.getHardware().getMemory().setLoad(memoryUsed);
 
 		Message msg;
 		double freeCPUPct = this.getHardware().getCpu().getLoad();
@@ -215,58 +215,97 @@ public class ZigBeeSensorNodeSofware extends SimpleShanksAgent implements Percip
 				"-> Reasoning cycle of " + this.getID() + " with perception range: " + this.getPerceptionRange()
 						+ " -> Step: " + step);
 
-		// Process incoming messages
-		if (this.msgsReadyToProcess.size() > 0) {
-			this.getHardware().getCpu().incrementLoad(0.8);
+		double externalDmgPctg = this.getHardware().getExternalDamagedPctg();
+		if (this.random.nextDouble() < externalDmgPctg) {
+			// If external damage, nothing to do in this cycle: no detection, no
+			// forward msgs, etc.
+			this.getLogger().warning(
+					"External damage of " + this.getHardware().getID()
+							+ " caused the lost of all pending messages in step " + this.sim.getSchedule().getSteps());
+			int size = this.getInbox().size();
+			if (size > 0) {
+				this.getLogger().warning("Total messages lost: " + size);
+			} else {
+				this.getLogger().warning("No messages lost because inbox was empty in this step.");
+			}
+			this.getInbox().clear();
+			this.getHardware().getMemory().setLoad(0.0);
 		} else {
+
+			// Process incoming messages
+			if (this.msgsReadyToProcess.size() > 0) {
+				this.getHardware().getCpu().incrementLoad(0.8);
+			} else {
+				this.getHardware().getCpu().setIdleLoad();
+			}
+			for (Message msg : this.msgsReadyToProcess) {
+				Message newMsg = new Message();
+				String content = (String) msg.getPropCont();
+				content = content + "&" + this.buildMessageContent(false, simulation);
+				newMsg.setPropCont(content);
+				newMsg.setMsgId(this.getHardware().getID() + ":" + simulation.schedule.getSteps() + ":"
+						+ this.msgCounter++ + ":" + this.getMessageEmittedPower());
+				newMsg.setInReplyTo(msg.getInReplyTo() + "&" + msg.getMsgId());
+				newMsg = this.setReceiverInPath(newMsg);
+				this.sendPackage(newMsg);
+				this.getLogger().finest(
+						"Resent message from " + msg.getSender() + " to " + msg.getReceiver() + " towards "
+								+ newMsg.getReceiver());
+				this.getHardware().getMemory().decrementLoad(memoryMsgSizePct);
+			}
+			this.msgsReadyToProcess.clear();
+
+			// Detect target agents
+			TargetAgent target = this.perceive(simulation);
+			double sensorDmgPct = this.getHardware().getSensorDamagedPctg();
+			boolean failing = false;
+			if (this.random.nextDouble() < sensorDmgPct) {
+				failing = true;
+			}
+			if ((target != null && !failing) || (target == null && failing)) {
+				// Send detection message if detection + not sensor failure (OK)
+				// and if not detection + sensor failing (NOK-failure)
+				if (failing) {
+					this.getLogger().warning(
+							"Sensor damage of " + this.getHardware().getID()
+									+ " caused false positive detection in step " + this.sim.getSchedule().getSteps());
+				}
+				this.getHardware().getCpu().incrementLoad(0.2);
+				this.getHardware().getMemory().incrementLoad(0.1);
+				this.getHardware().setDetecting(true);
+				this.getLogger().fine("Target detected by sensor " + this.getHardware().getID());
+				this.sendDetectionMessage(simulation);
+
+				// Adjust variables
+				this.consumeReaminingTime(false);
+				double temp = this.incrementTempActive * this.stepTime / 1000;
+				this.getHardware().increaseTemp(temp);
+			} else {
+				// Don't send detection message if not detection + not sensor
+				// failure (OK)
+				// and if detection + sensor failing (NOK-failure)
+				if (failing) {
+					this.getLogger().warning(
+							"Sensor damage of " + this.getHardware().getID()
+									+ " caused false negative detection in step " + this.sim.getSchedule().getSteps());
+				}
+
+				this.getHardware().setDetecting(false);
+
+				// Adjust variables
+				this.consumeReaminingTime(true);
+				double temp = this.incrementTempActive * this.consumedTimeInStep / 1000;
+				this.getHardware().increaseTemp(temp);
+				double idleTime = this.stepTime - this.consumedTimeInStep;
+				temp = this.decrementTempIdle * idleTime / 1000;
+				this.getHardware().decreaseTemp(temp);
+			}
+
+			// Finish step and free CPU load
+			// but not memory because maybe there are pending messages.
 			this.getHardware().getCpu().setIdleLoad();
+
 		}
-		for (Message msg : this.msgsReadyToProcess) {
-			Message newMsg = new Message();
-			String content = (String) msg.getPropCont();
-			content = content + "&" + this.buildMessageContent(false, simulation);
-			newMsg.setPropCont(content);
-			newMsg.setMsgId(this.getHardware().getID() + ":" + simulation.schedule.getSteps() + ":" + this.msgCounter++
-					+ ":" + this.getMessageEmittedPower());
-			newMsg.setInReplyTo(msg.getInReplyTo() + "&" + msg.getMsgId());
-			newMsg = this.setReceiverInPath(newMsg);
-			this.sendPackage(newMsg);
-			this.getLogger().finest(
-					"Resent message from " + msg.getSender() + " to " + msg.getReceiver() + " towards "
-							+ newMsg.getReceiver());
-			this.getHardware().getMemory().decrementLoad(memoryMsgSizePct);
-		}
-		this.msgsReadyToProcess.clear();
-
-		// Detect target agents
-		TargetAgent target = this.perceive(simulation);
-		if (target != null) {
-			this.getHardware().getCpu().incrementLoad(0.2);
-			this.getHardware().getMemory().incrementLoad(0.1);
-			this.getHardware().setDetecting(true);
-			this.getLogger().fine("Target detected by sensor " + this.getHardware().getID());
-			this.sendDetectionMessage(simulation);
-
-			// Adjust variables
-			this.consumeReaminingTime(false);
-			double temp = this.incrementTempActive * this.stepTime / 1000;
-			this.getHardware().increaseTemp(temp);
-		} else {
-			this.getHardware().setDetecting(false);
-
-			// Adjust variables
-			this.consumeReaminingTime(true);
-			double temp = this.incrementTempActive * this.consumedTimeInStep / 1000;
-			this.getHardware().increaseTemp(temp);
-			double idleTime = this.stepTime - this.consumedTimeInStep;
-			temp = this.decrementTempIdle * idleTime / 1000;
-			this.getHardware().decreaseTemp(temp);
-		}
-
-		// Finish step and free CPU load
-		// but not memory because maybe there are pending messages.
-		this.getHardware().getCpu().setIdleLoad();
-
 	}
 	/**
 	 * 
