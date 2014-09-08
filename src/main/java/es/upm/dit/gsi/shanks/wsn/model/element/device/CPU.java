@@ -53,8 +53,8 @@ public class CPU {
 	 */
 	public double getLoad() {
 		double aux = load + damagePercentage;
-		if (aux > 100.0) {
-			return 100.0;
+		if (aux > 1.0) {
+			return 1.0;
 		} else {
 			return aux;
 		}
@@ -111,8 +111,8 @@ public class CPU {
 
 	public void incrementLoad(double load) {
 		this.load += load;
-		if (this.load > 100.0) {
-			this.load = 100.0;
+		if (this.load > 1.0) {
+			this.load = 1.0;
 		}
 	}
 
@@ -120,7 +120,7 @@ public class CPU {
 	 * @return
 	 */
 	public double getNonDamagedCPU() {
-		return (1 - this.damagePercentage);
+		return (1.0 - this.damagePercentage);
 	}
 	
 	public void setIdleLoad() {

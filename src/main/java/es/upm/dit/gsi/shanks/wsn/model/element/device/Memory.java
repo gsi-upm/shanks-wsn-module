@@ -53,7 +53,12 @@ public class Memory {
 	 * @return the load
 	 */
 	public double getLoad() {
-		return load;
+		double aux = load + damagePercentage;
+		if (aux > 1.0) {
+			return 1.0;
+		} else {
+			return aux;
+		}
 	}
 
 	/**
@@ -124,6 +129,6 @@ public class Memory {
 	 * @return
 	 */
 	public double getFreeMemory() {
-		return (1.0 - this.load);
+		return (1.0 - this.getLoad());
 	}
 }
