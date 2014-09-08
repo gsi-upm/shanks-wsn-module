@@ -103,7 +103,7 @@ public class WSNSimulation extends ShanksSimulation {
 					this.registerShanksAgent(bsoftware);
 				} else {
 					ZigBeeSensorNodeSofware software = new ZigBeeSensorNodeSofware("software-" + node.getID(), logger,
-							node, perceptionRange, stepTime, maxNoise, minNoise, this.random);
+							node, perceptionRange, stepTime, maxNoise, minNoise, this.random, this);
 					this.registerShanksAgent(software);
 				}
 			}

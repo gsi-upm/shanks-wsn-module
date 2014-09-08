@@ -130,6 +130,13 @@ public class Battery {
 	public void recharge() {
 		this.currentCharge = capacity;
 	}
+	
+	/**
+	 * @param capacity
+	 */
+	public void discharge(double capacity) {
+		this.currentCharge = this.currentCharge - capacity;
+	}
 
 	/**
 	 * @return

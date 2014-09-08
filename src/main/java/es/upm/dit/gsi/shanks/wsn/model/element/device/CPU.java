@@ -122,5 +122,9 @@ public class CPU {
 	public double getNonDamagedCPU() {
 		return (1 - this.damagePercentage);
 	}
+	
+	public void setIdleLoad() {
+		this.load = 0.0; 
+	}
 
 }

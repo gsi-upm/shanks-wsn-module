@@ -77,6 +77,7 @@ public class Memory {
 	 */
 	public void setDamagePercentage(double damagePercentage) {
 		this.damagePercentage = damagePercentage;
+		this.load = load + damagePercentage;
 	}
 
 	/**
@@ -105,14 +106,6 @@ public class Memory {
 		this.damaged = damaged;
 	}
 
-	/**
-	 * @return
-	 */
-	public double getNonDamagedMemory() {
-		// TODO put here the effect of the failures
-		return (1.0 - load);
-	}
-
 	public void incrementLoad(double load) {
 		this.load += load;
 		if (this.load > 100.0) {
@@ -125,5 +118,12 @@ public class Memory {
 		if (this.load < 0.0) {
 			this.load = 0.0;
 		}
+	}
+
+	/**
+	 * @return
+	 */
+	public double getFreeMemory() {
+		return (1.0 - this.load);
 	}
 }

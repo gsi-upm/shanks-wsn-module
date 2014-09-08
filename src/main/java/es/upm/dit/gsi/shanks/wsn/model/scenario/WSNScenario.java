@@ -39,7 +39,11 @@ import es.upm.dit.gsi.shanks.wsn.model.element.device.Battery;
 import es.upm.dit.gsi.shanks.wsn.model.element.device.ZigBeeSensorNode;
 import es.upm.dit.gsi.shanks.wsn.model.element.link.RoutePathLink;
 import es.upm.dit.gsi.shanks.wsn.model.element.link.SensorLink;
+import es.upm.dit.gsi.shanks.wsn.model.failure.BatteryHardwareFailure;
 import es.upm.dit.gsi.shanks.wsn.model.failure.CpuHardwareFailure;
+import es.upm.dit.gsi.shanks.wsn.model.failure.ExternalDamageFailure;
+import es.upm.dit.gsi.shanks.wsn.model.failure.MemoryHardwareFailure;
+import es.upm.dit.gsi.shanks.wsn.model.failure.SensorHardwareFailure;
 import es.upm.dit.gsi.shanks.wsn.model.scenario.portrayal.WSNScenario2DPortrayal;
 import es.upm.dit.gsi.shanks.wsn.utils.dijkstra.Dijkstra;
 import es.upm.dit.gsi.shanks.wsn.utils.dijkstra.Edge;
@@ -168,7 +172,8 @@ public class WSNScenario extends Scenario {
 		Double2D pos = new Double2D(width / 2, height / 2);
 
 		Battery battery = Battery.getInfiniteBattery();
-		ZigBeeSensorNode base = new ZigBeeSensorNode("base-station", ZigBeeSensorNode.OK_READY, true, logger, pos, battery, rnd);
+		ZigBeeSensorNode base = new ZigBeeSensorNode("base-station", ZigBeeSensorNode.OK_READY, true, logger, pos,
+				battery, rnd);
 		this.addNetworkElement(base);
 
 		List<ZigBeeSensorNode> heads = new ArrayList<ZigBeeSensorNode>();
@@ -177,11 +182,13 @@ public class WSNScenario extends Scenario {
 		// Look for the radio range with the given noise level
 		int rangeRadioDistance = 0;
 		Double2D orig = new Double2D(0, 0);
-		ZigBeeSensorNode auxNode = new ZigBeeSensorNode("aux", ZigBeeSensorNode.OK_READY, false, logger, orig, battery, rnd);
+		ZigBeeSensorNode auxNode = new ZigBeeSensorNode("aux", ZigBeeSensorNode.OK_READY, false, logger, orig, battery,
+				rnd);
 		boolean inRange = true;
 		while (inRange == true) {
 			Double2D p = new Double2D(0, ++rangeRadioDistance);
-			ZigBeeSensorNode auxNode2 = new ZigBeeSensorNode("aux2", ZigBeeSensorNode.OK_READY, false, logger, p, battery, rnd);
+			ZigBeeSensorNode auxNode2 = new ZigBeeSensorNode("aux2", ZigBeeSensorNode.OK_READY, false, logger, p,
+					battery, rnd);
 			double d = this.getPathCost(auxNode, auxNode2);
 			if (d == Double.MAX_VALUE) {
 				rangeRadioDistance = rangeRadioDistance - 5;
@@ -203,7 +210,8 @@ public class WSNScenario extends Scenario {
 				}
 			} while (map[h][w] == true);
 			battery = Battery.get2AABatteryAlkaline();
-			ZigBeeSensorNode node = new ZigBeeSensorNode("sensor-" + i, ZigBeeSensorNode.OK_READY, false, logger, pos, battery, rnd);
+			ZigBeeSensorNode node = new ZigBeeSensorNode("sensor-" + i, ZigBeeSensorNode.OK_READY, false, logger, pos,
+					battery, rnd);
 			sensors.add(node);
 			this.addNetworkElement(node);
 		}
@@ -507,7 +515,10 @@ public class WSNScenario extends Scenario {
 		}
 
 		this.addPossibleFailure(CpuHardwareFailure.class, nodeSetsList);
-		// TODO add all failure for all nodes
+		this.addPossibleFailure(BatteryHardwareFailure.class, nodeSetsList);
+		this.addPossibleFailure(MemoryHardwareFailure.class, nodeSetsList);
+		this.addPossibleFailure(SensorHardwareFailure.class, nodeSetsList);
+		this.addPossibleFailure(ExternalDamageFailure.class, nodeSetsList);
 	}
 
 	/*

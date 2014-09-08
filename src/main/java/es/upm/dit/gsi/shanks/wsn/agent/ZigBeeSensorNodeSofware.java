@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import sim.util.Bag;
+import sim.util.Double2D;
 import ec.util.MersenneTwisterFast;
 import es.upm.dit.gsi.shanks.ShanksSimulation;
 import es.upm.dit.gsi.shanks.agent.SimpleShanksAgent;
@@ -79,12 +80,16 @@ public class ZigBeeSensorNodeSofware extends SimpleShanksAgent implements Percip
 
 	private double memoryMsgSizePct = 0.05; // 5% of memory
 
+	private int sensitivity = -90; // -90 dBm
+
 	private double maxNoise;
 	private double minNoise;
 
 	private MersenneTwisterFast random;
 
 	private int msgCounter;
+
+	private ShanksSimulation sim;
 
 	/**
 	 * Constructor
@@ -95,7 +100,7 @@ public class ZigBeeSensorNodeSofware extends SimpleShanksAgent implements Percip
 	 * @param random
 	 */
 	public ZigBeeSensorNodeSofware(String id, Logger logger, ZigBeeSensorNode hardware, double perceptionRange,
-			double stepTime, double maxNoise, double minNoise, MersenneTwisterFast random) {
+			double stepTime, double maxNoise, double minNoise, MersenneTwisterFast random, ShanksSimulation sim) {
 		super(id, logger);
 		this.hardware = hardware;
 		this.hardware.setSoftware(this);
@@ -107,6 +112,7 @@ public class ZigBeeSensorNodeSofware extends SimpleShanksAgent implements Percip
 		this.minNoise = minNoise;
 		this.random = random;
 		this.msgCounter = 0;
+		this.sim = sim;
 	}
 
 	/*
@@ -120,11 +126,26 @@ public class ZigBeeSensorNodeSofware extends SimpleShanksAgent implements Percip
 		List<Message> inbox = this.getInbox();
 
 		List<Message> lostMsgs = new ArrayList<Message>();
-		
-		//TODO check lost messages with real emitted power
+
 		for (Message msg : inbox) {
+
+			// Check lost messages with real emitted power
+			String msgId = msg.getMsgId();
+			String[] msgIdparts = msgId.split(":");
+			int power = Integer.parseInt(msgIdparts[3]);
 			double noise = this.getGaussianNoise();
-			if (noise > this.maxNoise) {
+
+			String sensorId = msgIdparts[0];
+			ZigBeeSensorNode sensor = (ZigBeeSensorNode) this.sim.getScenario().getCurrentElements().get(sensorId);
+
+			Double2D pos1 = this.getHardware().getPosition();
+			Double2D pos2 = sensor.getPosition();
+			double distance = pos1.distance(pos2);
+			double distanceKm = distance / 1000;
+			double loss = 100 + (20 * Math.log10(distanceKm)); // in dB for
+																// 2,4GHz
+			double snr = (power - loss) - noise;
+			if (snr < this.sensitivity) {
 				lostMsgs.add(msg);
 			}
 		}
@@ -133,7 +154,7 @@ public class ZigBeeSensorNodeSofware extends SimpleShanksAgent implements Percip
 		}
 		inbox.removeAll(lostMsgs);
 
-		double freeMemoryPct = this.getHardware().getMemory().getNonDamagedMemory();
+		double freeMemoryPct = this.getHardware().getMemory().getFreeMemory();
 		int msgsMemoryCapacity = (int) (freeMemoryPct / memoryMsgSizePct);
 		if (inbox.size() > msgsMemoryCapacity) {
 			int discardMsgs = inbox.size() - msgsMemoryCapacity;
@@ -142,11 +163,11 @@ public class ZigBeeSensorNodeSofware extends SimpleShanksAgent implements Percip
 					this.getID() + "-> Memory full -> Discarding " + discardMsgs + " messages in the queue.");
 		}
 		double memoryUsed = inbox.size() * memoryMsgSizePct;
-		this.getHardware().getMemory().setLoad(memoryUsed);
+		this.getHardware().getMemory().incrementLoad(memoryUsed);
 
 		Message msg;
-		double pctCPUNonDamage = this.getHardware().getCpu().getNonDamagedCPU();
-		double timeToReceive = ((double) this.stepTime) * 0.35 * pctCPUNonDamage;
+		double freeCPUPct = this.getHardware().getCpu().getLoad();
+		double timeToReceive = ((double) this.stepTime) * 0.35 * freeCPUPct;
 		while (this.consumedTimeInStep < timeToReceive && inbox.size() > 0) {
 			msg = inbox.get(0);
 			inbox.remove(msg);
@@ -161,6 +182,7 @@ public class ZigBeeSensorNodeSofware extends SimpleShanksAgent implements Percip
 							+ ". Too many messages to process in only one step.");
 		}
 	}
+
 	/**
 	 * @return
 	 */
@@ -195,17 +217,17 @@ public class ZigBeeSensorNodeSofware extends SimpleShanksAgent implements Percip
 
 		// Process incoming messages
 		if (this.msgsReadyToProcess.size() > 0) {
-			double cpuload = this.getHardware().getCpu().getNonDamagedCPU();
-			this.getHardware().getCpu().setLoad(0.8 * cpuload);
+			this.getHardware().getCpu().incrementLoad(0.8);
 		} else {
-			this.getHardware().getCpu().setLoad(0);
+			this.getHardware().getCpu().setIdleLoad();
 		}
 		for (Message msg : this.msgsReadyToProcess) {
 			Message newMsg = new Message();
 			String content = (String) msg.getPropCont();
 			content = content + "&" + this.buildMessageContent(false, simulation);
 			newMsg.setPropCont(content);
-			newMsg.setMsgId(this.getHardware().getID() + ":" + simulation.schedule.getSteps() + ":" + this.msgCounter++ + ":" + this.getMessageEmittedPower());
+			newMsg.setMsgId(this.getHardware().getID() + ":" + simulation.schedule.getSteps() + ":" + this.msgCounter++
+					+ ":" + this.getMessageEmittedPower());
 			newMsg.setInReplyTo(msg.getInReplyTo() + "&" + msg.getMsgId());
 			newMsg = this.setReceiverInPath(newMsg);
 			this.sendPackage(newMsg);
@@ -240,6 +262,10 @@ public class ZigBeeSensorNodeSofware extends SimpleShanksAgent implements Percip
 			temp = this.decrementTempIdle * idleTime / 1000;
 			this.getHardware().decreaseTemp(temp);
 		}
+
+		// Finish step and free CPU load
+		// but not memory because maybe there are pending messages.
+		this.getHardware().getCpu().setIdleLoad();
 
 	}
 	/**
@@ -288,7 +314,13 @@ public class ZigBeeSensorNodeSofware extends SimpleShanksAgent implements Percip
 		double roundedTemp = Math.round(sensor.getTemp() * 100.0) / 100.0;
 		double roundedcpu = Math.round(sensor.getCpu().getLoad() * 100.0) / 100.0;
 		double roundedMemory = Math.round(sensor.getMemory().getLoad() * 100.0) / 100.0;
-		String content = "CPU:" + roundedcpu + "/MEM:" + roundedMemory + "/TMP:" + roundedTemp + "/DET:T/BAT:"
+		String d = "";
+		if (detecting) {
+			d = "T";
+		} else {
+			d = "F";
+		}
+		String content = "CPU:" + roundedcpu + "/MEM:" + roundedMemory + "/TMP:" + roundedTemp + "/DET:" + d + "/BAT:"
 				+ sensor.getBattery().getCurrentChargePercentage();
 		return content;
 	}

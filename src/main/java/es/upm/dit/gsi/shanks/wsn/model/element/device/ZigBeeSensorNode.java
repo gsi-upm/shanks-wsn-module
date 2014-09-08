@@ -51,7 +51,6 @@ public class ZigBeeSensorNode extends Device {
 	public static final String EXTERNAL_DAMAGE_STATUS = "ExternalDamage";
 	public static final String OK_READY = "OK&Ready";
 
-
 	private Double2D position;
 
 	private boolean isZigBeeRouter;
@@ -71,6 +70,10 @@ public class ZigBeeSensorNode extends Device {
 	private double temp;
 
 	private Random rnd;
+
+	private double sensorDamagedPctg;
+
+	private double externalDamagedPctg;
 
 	/**
 	 * Constructor
@@ -94,6 +97,10 @@ public class ZigBeeSensorNode extends Device {
 		this.setCpu(new CPU());
 		this.setMemory(new Memory());
 		this.setTemp(35.0);
+		// Sensor works perfectly, no possibility of false positive or false
+		// negative.
+		this.setSensorDamagedPctg(0.0);
+		this.setExternalDamagedPctg(0.0);
 	}
 
 	/*
@@ -128,28 +135,42 @@ public class ZigBeeSensorNode extends Device {
 			double damage = this.rnd.nextDouble();
 			int intDamage = (int) (damage * 100);
 			damage = ((double) intDamage) / 100;
-			// TODO
+			double capacity = this.battery.getCapacity();
+			double lostBat = capacity * damage;
+			this.getSoftware()
+					.getLogger()
+					.warning(
+							"Node: " + this.getID() + " -> BATTERY DAMAGED PERCENTAGE: " + damage
+									+ " -> Lost Capacity: " + lostBat + " mAh.");
+			this.battery.discharge(lostBat);
 		}
 		if (status.get(ZigBeeSensorNode.MEMORY_DAMAGED_STATUS)) {
 			double damage = this.rnd.nextDouble();
 			int intDamage = (int) (damage * 100);
 			damage = ((double) intDamage) / 100;
-			// TODO
+			this.memory.setDamagePercentage(damage);
+			this.getSoftware().getLogger()
+					.warning("Node: " + this.getID() + " -> MEMORY DAMAGED PERCENTAGE: " + damage);
+			this.memory.setDamaged(true);
 		}
 		if (status.get(ZigBeeSensorNode.SENSOR_DAMAGED_STATUS)) {
 			double damage = this.rnd.nextDouble();
 			int intDamage = (int) (damage * 100);
 			damage = ((double) intDamage) / 100;
-			// TODO
+			this.getSoftware().getLogger()
+					.warning("Node: " + this.getID() + " -> SENSOR DAMAGED PERCENTAGE: " + damage);
+			this.setSensorDamagedPctg(damage);
 		}
 		if (status.get(ZigBeeSensorNode.EXTERNAL_DAMAGE_STATUS)) {
 			double damage = this.rnd.nextDouble();
 			int intDamage = (int) (damage * 100);
 			damage = ((double) intDamage) / 100;
-			// TODO
+			this.getSoftware().getLogger()
+					.warning("Node: " + this.getID() + " -> EXTERNAL DAMAGED PERCENTAGE: " + damage);
+			this.setExternalDamagedPctg(damage);
 		}
 	}
-	
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -419,6 +440,36 @@ public class ZigBeeSensorNode extends Device {
 		if (this.temp >= 25.0) {
 			this.temp -= celsius;
 		}
+	}
+
+	/**
+	 * @return the sensorDamagedPctg
+	 */
+	public double getSensorDamagedPctg() {
+		return sensorDamagedPctg;
+	}
+
+	/**
+	 * @param sensorDamagedPctg
+	 *            the sensorDamagedPctg to set
+	 */
+	public void setSensorDamagedPctg(double sensorDamagedPctg) {
+		this.sensorDamagedPctg = sensorDamagedPctg;
+	}
+
+	/**
+	 * @return the externalDamagedPctg
+	 */
+	public double getExternalDamagedPctg() {
+		return externalDamagedPctg;
+	}
+
+	/**
+	 * @param externalDamagedPctg
+	 *            the externalDamagedPctg to set
+	 */
+	public void setExternalDamagedPctg(double externalDamagedPctg) {
+		this.externalDamagedPctg = externalDamagedPctg;
 	}
 
 }
