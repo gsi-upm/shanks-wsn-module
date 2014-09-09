@@ -20,6 +20,7 @@ package es.upm.dit.gsi.shanks.wsn.model.element.device.portrayal;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
+import java.util.HashMap;
 
 import sim.display.GUIState;
 import sim.portrayal.DrawInfo2D;
@@ -108,6 +109,30 @@ public class SensorNode2DPortrayal extends Device2DPortrayal implements Portraya
 			} else {
 				graphics.drawString(id, x - 3, y);
 			}
+
+			// Draw states
+			HashMap<String, Boolean> status = sensorNode.getStatus();
+			if (status.get(ZigBeeSensorNode.CPU_DAMAGED_STATUS)) {
+				graphics.setColor(Color.red);
+				graphics.fillRect(x - 5, y - 5, (int) 5, (int) 5);
+			}
+			if (status.get(ZigBeeSensorNode.BATTERY_DAMAGED_STATUS)) {
+				graphics.setColor(Color.yellow);
+				graphics.fillRect(x - 5, y - 5, (int) 5, (int) 5);
+			}
+			if (status.get(ZigBeeSensorNode.MEMORY_DAMAGED_STATUS)) {
+				graphics.setColor(Color.magenta);
+				graphics.fillRect(x - 5, y - 5, (int) 5, (int) 5);
+			}
+			if (status.get(ZigBeeSensorNode.SENSOR_DAMAGED_STATUS)) {
+				graphics.setColor(Color.orange);
+				graphics.fillRect(x - 5, y - 5, (int) 5, (int) 5);
+			}
+			if (status.get(ZigBeeSensorNode.EXTERNAL_DAMAGE_STATUS)) {
+				graphics.setColor(Color.black);
+				graphics.fillRect(x - 5, y - 5, (int) 5, (int) 5);
+			}
+
 		}
 
 	}
