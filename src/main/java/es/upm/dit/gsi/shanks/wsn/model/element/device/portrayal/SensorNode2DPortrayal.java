@@ -118,19 +118,19 @@ public class SensorNode2DPortrayal extends Device2DPortrayal implements Portraya
 			}
 			if (status.get(ZigBeeSensorNode.BATTERY_DAMAGED_STATUS)) {
 				graphics.setColor(Color.yellow);
-				graphics.fillRect(x - 5, y - 5, (int) 5, (int) 5);
+				graphics.fillRect(x + 5, y - 5, (int) 5, (int) 5);
 			}
 			if (status.get(ZigBeeSensorNode.MEMORY_DAMAGED_STATUS)) {
 				graphics.setColor(Color.magenta);
-				graphics.fillRect(x - 5, y - 5, (int) 5, (int) 5);
+				graphics.fillRect(x - 5, y, (int) 5, (int) 5);
 			}
 			if (status.get(ZigBeeSensorNode.SENSOR_DAMAGED_STATUS)) {
 				graphics.setColor(Color.orange);
-				graphics.fillRect(x - 5, y - 5, (int) 5, (int) 5);
+				graphics.fillRect(x, y + h, (int) 5, (int) 5);
 			}
 			if (status.get(ZigBeeSensorNode.EXTERNAL_DAMAGE_STATUS)) {
 				graphics.setColor(Color.black);
-				graphics.fillRect(x - 5, y - 5, (int) 5, (int) 5);
+				graphics.fillRect(x + w, y + h, (int) 5, (int) 5);
 			}
 
 		}
