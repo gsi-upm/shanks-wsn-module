@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
@@ -54,6 +55,7 @@ import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.reasoner.Reasoner;
 import com.hp.hpl.jena.reasoner.ValidityReport;
 
+import ec.util.MersenneTwisterFast;
 import es.upm.dit.gsi.shanks.ShanksSimulation;
 import es.upm.dit.gsi.shanks.agent.SimpleShanksAgent;
 import es.upm.dit.gsi.shanks.exception.ShanksException;
@@ -92,19 +94,36 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 	private OntModel model;
 
 	private Individual baseStationB2D2Agent;
+
+	private double minNoise;
+
+	private double maxNoise;
+
+	private MersenneTwisterFast random;
+
+	private int sensitivity = -90; // -90dBm
+
 	/**
 	 * Constructor
 	 * 
 	 * @param id
 	 * @param logger
+	 * @param maxNoise
+	 * @param minNoise
+	 * @param random
+	 * @param hardware
+	 * @param simulation
 	 * @throws ShanksException
 	 */
-	public ZigBeeCoordiantorNodeSoftware(String id, Logger logger, ZigBeeSensorNode hardware,
-			ShanksSimulation simulation) throws ShanksException {
+	public ZigBeeCoordiantorNodeSoftware(String id, Logger logger, double maxNoise, double minNoise,
+			MersenneTwisterFast random, ZigBeeSensorNode hardware, ShanksSimulation simulation) throws ShanksException {
 		super(id, logger);
 		this.hardware = hardware;
 		this.hardware.setSoftware(this);
 		this.sim = simulation;
+		this.maxNoise = maxNoise;
+		this.minNoise = minNoise;
+		this.random = random;
 		try {
 			// Initialize system functions and templates
 			SPINModuleRegistry.get().init();
@@ -251,13 +270,8 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 	 * @param model
 	 * @param elements
 	 * @throws ShanksException
-	 * @throws FileNotFoundException
 	 */
-	private void populateOntology(OntModel model, HashMap<String, NetworkElement> elements) throws ShanksException,
-			FileNotFoundException {
-
-		// TODO add this file as parameter
-		// Load main file
+	private void populateOntology(OntModel model, HashMap<String, NetworkElement> elements) throws ShanksException {
 
 		// Create OntModel with imports
 		this.getLogger().info("Populating model...");
@@ -327,6 +341,7 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 
 		}
 
+		// Create individuals for links
 		for (Entry<String, NetworkElement> entry : elements.entrySet()) {
 			NetworkElement element = entry.getValue();
 			if (element.getClass().equals(RoutePathLink.class)) {
@@ -404,6 +419,17 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 		this.getLogger().info("<--- loadSPINRules(): " + i + " rules loaded from file: " + rulesFile);
 	}
 
+	/**
+	 * @return
+	 */
+	private double getGaussianNoise() {
+		double mean = (maxNoise + minNoise) / 2;
+		double std = (maxNoise - minNoise) / 4;
+		double gaussian = this.random.nextGaussian();
+		double noise = (gaussian * std) + mean;
+		return noise;
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -412,9 +438,36 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 	@Override
 	public void checkMail() {
 		List<Message> inbox = this.getInbox();
+		List<Message> lostMsgs = new ArrayList<Message>();
 
-		// TODO check lost messages with real emitted power
+		for (Message msg : inbox) {
 
+			// Check lost messages with real emitted power
+			String msgId = msg.getMsgId();
+			String[] msgIdparts = msgId.split(":");
+			int power = Integer.parseInt(msgIdparts[3]);
+			double noise = this.getGaussianNoise();
+
+			String sensorId = msgIdparts[0];
+			ZigBeeSensorNode sensor = (ZigBeeSensorNode) this.sim.getScenario().getCurrentElements().get(sensorId);
+
+			Double2D pos1 = this.getHardware().getPosition();
+			Double2D pos2 = sensor.getPosition();
+			double distance = pos1.distance(pos2);
+			double distanceKm = distance / 1000;
+			double loss = 100 + (20 * Math.log10(distanceKm)); // in dB for
+																// 2,4GHz
+			double snr = (power - loss) - noise;
+			if (snr < this.sensitivity) {
+				lostMsgs.add(msg);
+			}
+		}
+		if (lostMsgs.size() > 0 && inbox.size() > 0) {
+			this.getLogger().info(this.getID() + "-> Ratio of lost messages: " + lostMsgs.size() + "/" + inbox.size());
+		}
+		inbox.removeAll(lostMsgs);
+
+		// Process the remaining messages
 		for (Message msg : inbox) {
 			String lastContent = (String) msg.getPropCont();
 			this.getLogger().fine("Content: " + lastContent);
@@ -470,9 +523,11 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 				for (int j = 0; j < i; j++) {
 					ontMsg.addProperty(Vocabulary.contains, allMsgs[j]);
 					sensor.addProperty(Vocabulary.receives, allMsgs[j]);
+					allMsgs[j].addProperty(Vocabulary.isReceivedBy, sensor);
 				}
 
 				this.baseStationB2D2Agent.addProperty(Vocabulary.receives, ontMsg);
+				ontMsg.addProperty(Vocabulary.isReceivedBy, this.baseStationB2D2Agent);
 				allMsgs[i] = ontMsg;
 			}
 
@@ -491,6 +546,9 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 		this.getLogger()
 				.finest("-> Reasoning cycle of " + this.getID() + " -> Step: " + simulation.schedule.getSteps());
 
+		// TODO implement here the real reasoning cycle of the coordinator
+
+		// Perform some queries and get simple numeric results.
 		if (simulation.getSchedule().getSteps() % 50 == 0) {
 			this.performQueries(model);
 			this.getLogger().info("Size before inference: " + model.size());
