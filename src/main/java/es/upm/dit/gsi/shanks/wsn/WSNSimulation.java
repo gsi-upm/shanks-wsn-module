@@ -99,7 +99,7 @@ public class WSNSimulation extends ShanksSimulation {
 				ZigBeeSensorNode node = (ZigBeeSensorNode) entry.getValue();
 				if (node.getID().startsWith("base")) {
 					ZigBeeCoordiantorNodeSoftware bsoftware = new ZigBeeCoordiantorNodeSoftware("software-"
-							+ node.getID(), logger, node, this);
+							+ node.getID(), logger, maxNoise, minNoise, this.random, node, this);
 					this.registerShanksAgent(bsoftware);
 				} else {
 					ZigBeeSensorNodeSofware software = new ZigBeeSensorNodeSofware("software-" + node.getID(), logger,
