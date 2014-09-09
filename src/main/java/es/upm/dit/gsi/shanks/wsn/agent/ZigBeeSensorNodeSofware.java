@@ -168,6 +168,8 @@ public class ZigBeeSensorNodeSofware extends SimpleShanksAgent implements Percip
 		Message msg;
 		double freeCPUPct = this.getHardware().getCpu().getLoad();
 		double timeToReceive = ((double) this.stepTime) * 0.35 * freeCPUPct;
+		// 35% of time for receiving, 35% of time sending (forwarding) and the
+		// remaining 30% detecting
 		while (this.consumedTimeInStep < timeToReceive && inbox.size() > 0) {
 			msg = inbox.get(0);
 			inbox.remove(msg);
@@ -230,6 +232,7 @@ public class ZigBeeSensorNodeSofware extends SimpleShanksAgent implements Percip
 			}
 			this.getInbox().clear();
 			this.getHardware().getMemory().setLoad(0.0);
+			this.getHardware().getCpu().setIdleLoad();
 		} else {
 
 			// Process incoming messages
@@ -278,7 +281,8 @@ public class ZigBeeSensorNodeSofware extends SimpleShanksAgent implements Percip
 
 				// Adjust variables
 				this.consumeReaminingTime(false);
-				double temp = this.incrementTempActive * this.stepTime / 1000;
+				double cpudamaged = this.getHardware().getCpu().getDamagePercentage();
+				double temp = this.incrementTempActive * this.stepTime * (1.0 + cpudamaged) / 1000;
 				this.getHardware().increaseTemp(temp);
 			} else {
 				// Don't send detection message if not detection + not sensor
@@ -294,7 +298,8 @@ public class ZigBeeSensorNodeSofware extends SimpleShanksAgent implements Percip
 
 				// Adjust variables
 				this.consumeReaminingTime(true);
-				double temp = this.incrementTempActive * this.consumedTimeInStep / 1000;
+				double cpudamaged = this.getHardware().getCpu().getDamagePercentage();
+				double temp = this.incrementTempActive * this.consumedTimeInStep * (1.0 + cpudamaged) / 1000;
 				this.getHardware().increaseTemp(temp);
 				double idleTime = this.stepTime - this.consumedTimeInStep;
 				temp = this.decrementTempIdle * idleTime / 1000;
