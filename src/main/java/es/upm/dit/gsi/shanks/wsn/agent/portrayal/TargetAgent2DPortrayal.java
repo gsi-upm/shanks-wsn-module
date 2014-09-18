@@ -55,8 +55,8 @@ public class TargetAgent2DPortrayal extends Device2DPortrayal {
 
 		graphics.setColor(Color.red);
 
-		final int w = (int) 20;
-		final int h = (int) 20;
+		final int w = (int) 10;
+		final int h = (int) 10;
 		final int x = (int) (info.draw.x - w / 2.0);
 		final int y = (int) (info.draw.y - h / 2.0);
 		graphics.fillOval(x, y, w, h);
