@@ -55,6 +55,7 @@ public class Vocabulary {
 
 	// Classes
 	public static final Resource ZigBeeMessage = m_model.createResource(diagnosisNS + "ZigBeeMessage");
+	public static final Resource LostMessage = m_model.createResource(diagnosisNS + "LostMessage");
 	public static final Resource BaseStation = m_model.createResource(wsnNdlNS + "ZigBeeBaseStation");
 	public static final Resource MicaZ = m_model.createResource(wsnNdlNS + "MicaZ");
 	public static final Resource Location = m_model.createResource(nmlBaseNS + "Location");

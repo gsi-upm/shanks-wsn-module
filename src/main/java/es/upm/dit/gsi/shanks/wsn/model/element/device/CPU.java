@@ -126,5 +126,9 @@ public class CPU {
 	public void setIdleLoad() {
 		this.load = 0.0; 
 	}
+	
+	public double getFreeCPU() {
+		return 1 - this.getLoad();
+	}
 
 }

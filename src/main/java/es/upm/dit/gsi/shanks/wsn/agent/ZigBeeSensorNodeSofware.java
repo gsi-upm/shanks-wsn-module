@@ -166,7 +166,7 @@ public class ZigBeeSensorNodeSofware extends SimpleShanksAgent implements Percip
 		this.getHardware().getMemory().setLoad(memoryUsed);
 
 		Message msg;
-		double freeCPUPct = this.getHardware().getCpu().getLoad();
+		double freeCPUPct = this.getHardware().getCpu().getFreeCPU();
 		double timeToReceive = ((double) this.stepTime) * 0.35 * freeCPUPct;
 		// 35% of time for receiving, 35% of time sending (forwarding) and the
 		// remaining 30% detecting
