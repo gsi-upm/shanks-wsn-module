@@ -2,18 +2,18 @@
 <smile version="1.0" id="Network1" numsamples="1000" discsamples="10000">
 	<nodes>
 		<cpt id="Hardware_Sensor">
-			<state id="State0" />
-			<state id="State1" />
+			<state id="True" />
+			<state id="False" />
 			<probabilities>0.5 0.5</probabilities>
 		</cpt>
 		<cpt id="Hardware_Processor">
-			<state id="State0" />
-			<state id="State1" />
+			<state id="True" />
+			<state id="False" />
 			<probabilities>0.5 0.5</probabilities>
 		</cpt>
 		<cpt id="Hardware_Memory">
-			<state id="State0" />
-			<state id="State1" />
+			<state id="True" />
+			<state id="False" />
 			<probabilities>0.5 0.5</probabilities>
 		</cpt>
 		<cpt id="Lost_Msgs_Quantity">
@@ -37,58 +37,51 @@
 			<probabilities>0.5 0.5</probabilities>
 		</cpt>
 		<cpt id="Env_SignalNoise">
-			<state id="State0" />
-			<state id="State1" />
+			<state id="True" />
+			<state id="False" />
 			<probabilities>0.5 0.5</probabilities>
 		</cpt>
 		<cpt id="Detection_Sensor_Data_NonReceived">
-			<state id="State0" />
-			<state id="State1" />
+			<state id="True" />
+			<state id="False" />
 			<probabilities>0.5 0.5</probabilities>
 		</cpt>
 		<cpt id="Env_ExternalDamage">
-			<state id="State0" />
-			<state id="State1" />
+			<state id="True" />
+			<state id="False" />
 			<probabilities>0.5 0.5</probabilities>
 		</cpt>
 		<cpt id="Incoherent_Sensor_Data_Received">
-			<state id="State0" />
-			<state id="State1" />
+			<state id="True" />
+			<state id="False" />
 			<probabilities>0.5 0.5</probabilities>
 		</cpt>
 		<cpt id="Outdated_Sensor_Data_Received">
-			<state id="State0" />
-			<state id="State1" />
-			<probabilities>0.5 0.5</probabilities>
-		</cpt>
-		<cpt id="SNR_Data_Received">
-			<state id="State0" />
-			<state id="State1" />
-			<probabilities>0.5 0.5</probabilities>
-		</cpt>
-		<cpt id="Power_Emitted">
-			<state id="State0" />
-			<state id="State1" />
+			<state id="True" />
+			<state id="False" />
 			<probabilities>0.5 0.5</probabilities>
 		</cpt>
 		<cpt id="Temperature_Hist">
-			<state id="State0" />
-			<state id="State1" />
-			<probabilities>0.5 0.5</probabilities>
+			<state id="High" />
+			<state id="Normal" />
+			<state id="Low" />
+			<probabilities>0.5 0.5 0</probabilities>
 		</cpt>
 		<cpt id="CPU_Load_Hist">
-			<state id="State0" />
-			<state id="State1" />
-			<probabilities>0.5 0.5</probabilities>
+			<state id="High" />
+			<state id="Normal" />
+			<state id="Low" />
+			<probabilities>0.5 0.5 0</probabilities>
 		</cpt>
 		<cpt id="Memory_Load_Hist">
-			<state id="State0" />
-			<state id="State1" />
-			<probabilities>0.5 0.5</probabilities>
+			<state id="High" />
+			<state id="Normal" />
+			<state id="Low" />
+			<probabilities>0.5 0.5 0</probabilities>
 		</cpt>
 		<cpt id="Comm_Routing_NetworkCongestion">
-			<state id="State0" />
-			<state id="State1" />
+			<state id="True" />
+			<state id="False" />
 			<probabilities>0.5 0.5</probabilities>
 		</cpt>
 	</nodes>
@@ -142,20 +135,6 @@
 				<outline color="000080" />
 				<font color="000000" name="Arial" size="8" />
 				<position>279 197 453 249</position>
-			</node>
-			<node id="SNR_Data_Received">
-				<name>SNR_Data_Received</name>
-				<interior color="cc99ff" />
-				<outline color="000080" />
-				<font color="000000" name="Arial" size="8" />
-				<position>637 95 811 147</position>
-			</node>
-			<node id="Power_Emitted">
-				<name>Power_Emitted</name>
-				<interior color="cc99ff" />
-				<outline color="000080" />
-				<font color="000000" name="Arial" size="8" />
-				<position>645 158 819 210</position>
 			</node>
 			<node id="Temperature_Hist">
 				<name>Temperature_Hist</name>
@@ -218,7 +197,7 @@
 				<interior color="cc99ff" />
 				<outline color="000080" />
 				<font color="000000" name="Arial" size="8" />
-				<position>554 371 728 423</position>
+				<position>318 316 492 368</position>
 			</node>
 		</genie>
 	</extensions>
