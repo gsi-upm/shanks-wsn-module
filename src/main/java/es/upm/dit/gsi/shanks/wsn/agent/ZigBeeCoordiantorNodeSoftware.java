@@ -19,11 +19,14 @@ package es.upm.dit.gsi.shanks.wsn.agent;
 
 import jason.asSemantics.Message;
 
+import java.awt.geom.Area;
+import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
@@ -53,7 +56,6 @@ import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.Resource;
-import com.hp.hpl.jena.rdf.model.Statement;
 import com.hp.hpl.jena.reasoner.Reasoner;
 import com.hp.hpl.jena.reasoner.ValidityReport;
 
@@ -109,6 +111,8 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 
 	private List<Individual> incomingMsgs;
 
+	private HashMap<Long, Area> targetZones;
+
 	/**
 	 * Constructor
 	 * 
@@ -121,10 +125,8 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 	 * @param simulation
 	 * @throws ShanksException
 	 */
-	public ZigBeeCoordiantorNodeSoftware(String id, Logger logger,
-			double maxNoise, double minNoise, MersenneTwisterFast random,
-			ZigBeeSensorNode hardware, ShanksSimulation simulation)
-			throws ShanksException {
+	public ZigBeeCoordiantorNodeSoftware(String id, Logger logger, double maxNoise, double minNoise,
+			MersenneTwisterFast random, ZigBeeSensorNode hardware, ShanksSimulation simulation) throws ShanksException {
 		super(id, logger);
 		this.hardware = hardware;
 		this.hardware.setSoftware(this);
@@ -133,14 +135,13 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 		this.minNoise = minNoise;
 		this.random = random;
 		this.lastKnownMsgs = new HashMap<String, Long>();
+		this.targetZones = new HashMap<Long, Area>();
 		try {
 			// Initialize system functions and templates
 			SPINModuleRegistry.get().init();
 
-			HashMap<String, NetworkElement> elements = sim.getScenario()
-					.getCurrentElements();
-			String ontologyURI = (String) this.sim.getScenario()
-					.getProperties().get(WSNScenario.ONTOLOGY_URI);
+			HashMap<String, NetworkElement> elements = sim.getScenario().getCurrentElements();
+			String ontologyURI = (String) this.sim.getScenario().getProperties().get(WSNScenario.ONTOLOGY_URI);
 			// Create individuals
 			this.getLogger().info("Loading ontology from: " + ontologyURI);
 			model = this.loadModelWithImports(ontologyURI);
@@ -153,8 +154,7 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 			model.removeNsPrefix("");
 
 			// SPIN RULES
-			String rulesFile = (String) this.sim.getScenario().getProperties()
-					.get(WSNScenario.TOPOLOGY_RULES_FILE);
+			String rulesFile = (String) this.sim.getScenario().getProperties().get(WSNScenario.TOPOLOGY_RULES_FILE);
 			this.loadSPINRules(rulesFile, model);
 
 			SPINModuleRegistry.get().registerAll(model, null);
@@ -273,11 +273,9 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 
 		ValidityReport report = infmodel.validate();
 		if (!report.isValid()) {
-			this.getLogger().severe(
-					"Incosistent ontology -> isValid: " + report.isValid());
+			this.getLogger().severe("Incosistent ontology -> isValid: " + report.isValid());
 		} else {
-			this.getLogger().severe(
-					"No incosistent ontology -> isValid: " + report.isValid());
+			this.getLogger().severe("No incosistent ontology -> isValid: " + report.isValid());
 		}
 	}
 
@@ -286,8 +284,7 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 	 * @param elements
 	 * @throws ShanksException
 	 */
-	private void populateOntology(OntModel model,
-			HashMap<String, NetworkElement> elements) throws ShanksException {
+	private void populateOntology(OntModel model, HashMap<String, NetworkElement> elements) throws ShanksException {
 
 		// Create OntModel with imports
 		this.getLogger().info("Populating model...");
@@ -295,83 +292,68 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 		// Create an individual for devices
 		for (Entry<String, NetworkElement> entry : elements.entrySet()) {
 			NetworkElement element = entry.getValue();
-			if (element.getClass().equals(ZigBeeSensorNode.class)
-					&& element.getID().startsWith("sensor-")) {
+			if (element.getClass().equals(ZigBeeSensorNode.class) && element.getID().startsWith("sensor-")) {
 				ZigBeeSensorNode device = (ZigBeeSensorNode) element;
 				String elementid = device.getID();
 				// Create sensor in ontology and all its properties
-				Individual sensor = model.createIndividual(Vocabulary.wsnNdlNS
-						+ elementid, Vocabulary.MicaZ);
-				sensor.addProperty(Vocabulary.name,
-						model.createTypedLiteral(elementid));
+				Individual sensor = model.createIndividual(Vocabulary.wsnNdlNS + elementid, Vocabulary.MicaZ);
+				sensor.addProperty(Vocabulary.name, model.createTypedLiteral(elementid));
 				if (device.isZigBeeRouter()) {
-					sensor.addProperty(Vocabulary.isRouter,
-							model.createTypedLiteral(true));
+					sensor.addProperty(Vocabulary.isRouter, model.createTypedLiteral(true));
 				} else {
-					sensor.addProperty(Vocabulary.isRouter,
-							model.createTypedLiteral(false));
+					sensor.addProperty(Vocabulary.isRouter, model.createTypedLiteral(false));
 				}
 				// Sensor location
-				Individual location = model.createIndividual(
-						Vocabulary.wsnNdlNS + "location-" + elementid,
+				Individual location = model.createIndividual(Vocabulary.wsnNdlNS + "location-" + elementid,
 						Vocabulary.Location);
 				sensor.addProperty(Vocabulary.locatedAt, location);
 				Double2D position = device.getPosition();
-				location.addProperty(Vocabulary.longitude,
-						model.createTypedLiteral((float) position.x));
-				location.addProperty(Vocabulary.latitude,
-						model.createTypedLiteral((float) position.y));
+				location.addProperty(Vocabulary.longitude, model.createTypedLiteral((float) position.x));
+				location.addProperty(Vocabulary.latitude, model.createTypedLiteral((float) position.y));
 
 				// Sensor cpu, memory and transceiver
-				Individual cpu = model.createIndividual(Vocabulary.wsnNdlNS
-						+ "cpu-" + elementid, Vocabulary.Cpu);
-				Individual memory = model.createIndividual(Vocabulary.wsnNdlNS
-						+ "memory-" + elementid, Vocabulary.Memory);
-				Individual transceiver = model.createIndividual(
-						Vocabulary.wsnNdlNS + "transceiver-" + elementid,
+				Individual cpu = model.createIndividual(Vocabulary.wsnNdlNS + "cpu-" + elementid, Vocabulary.Cpu);
+				Individual memory = model.createIndividual(Vocabulary.wsnNdlNS + "memory-" + elementid,
+						Vocabulary.Memory);
+				Individual transceiver = model.createIndividual(Vocabulary.wsnNdlNS + "transceiver-" + elementid,
 						Vocabulary.Transceiver);
-				Individual motionSensor = model.createIndividual(
-						Vocabulary.wsnNdlNS + "sensor-" + elementid,
+				Individual motionSensor = model.createIndividual(Vocabulary.wsnNdlNS + "sensor-" + elementid,
 						Vocabulary.Motionsensor);
 
 				sensor.addProperty(Vocabulary.hasComponent, cpu);
+				sensor.addProperty(Vocabulary.hasCPU, cpu);
 				sensor.addProperty(Vocabulary.hasComponent, memory);
+				sensor.addProperty(Vocabulary.hasMemory, memory);
 				sensor.addProperty(Vocabulary.hasComponent, transceiver);
+				sensor.addProperty(Vocabulary.hasTransceiver, transceiver);
 				sensor.addProperty(Vocabulary.hasComponent, motionSensor);
+				sensor.addProperty(Vocabulary.hasSensor, motionSensor);
 
 				// CPU properties
 				cpu.addProperty(Vocabulary.cores, model.createTypedLiteral(1));
-				cpu.addProperty(Vocabulary.cpuspeed,
-						model.createTypedLiteral((float) 0.008));
+				cpu.addProperty(Vocabulary.cpuspeed, model.createTypedLiteral((float) 0.008));
 				// Memory properties
-				memory.addProperty(Vocabulary.size,
-						model.createTypedLiteral((float) 0.00025));
+				memory.addProperty(Vocabulary.size, model.createTypedLiteral((float) 0.00025));
 				// Transceiver properties
 
 				// Motion Sensor properties
 
-			} else if (element.getClass().equals(ZigBeeSensorNode.class)
-					&& element.getID().startsWith("base-station")) {
+			} else if (element.getClass().equals(ZigBeeSensorNode.class) && element.getID().startsWith("base-station")) {
 				ZigBeeSensorNode device = (ZigBeeSensorNode) element;
 				String elementid = device.getID();
 				Individual baseStation = model
-						.createIndividual(Vocabulary.wsnNdlNS + elementid,
-								Vocabulary.BaseStation);
-				baseStation.addProperty(Vocabulary.name,
-						model.createTypedLiteral(elementid));
+						.createIndividual(Vocabulary.wsnNdlNS + elementid, Vocabulary.BaseStation);
+				baseStation.addProperty(Vocabulary.name, model.createTypedLiteral(elementid));
 
 				this.baseStationB2D2Agent = baseStation;
 
 				// BaseStation location
-				Individual location = model.createIndividual(
-						Vocabulary.wsnNdlNS + "location-" + elementid,
+				Individual location = model.createIndividual(Vocabulary.wsnNdlNS + "location-" + elementid,
 						Vocabulary.Location);
 				baseStation.addProperty(Vocabulary.locatedAt, location);
 				Double2D position = device.getPosition();
-				location.addProperty(Vocabulary.longitude,
-						model.createTypedLiteral((float) position.x));
-				location.addProperty(Vocabulary.latitude,
-						model.createTypedLiteral((float) position.y));
+				location.addProperty(Vocabulary.longitude, model.createTypedLiteral((float) position.x));
+				location.addProperty(Vocabulary.latitude, model.createTypedLiteral((float) position.y));
 			}
 
 		}
@@ -382,52 +364,36 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 			if (element.getClass().equals(RoutePathLink.class)) {
 				RoutePathLink link = (RoutePathLink) element;
 				String elementid = link.getID();
-				Individual routerPathLink = model.createIndividual(
-						Vocabulary.wsnNdlNS + elementid,
+				Individual routerPathLink = model.createIndividual(Vocabulary.wsnNdlNS + elementid,
 						Vocabulary.RoutePathLink);
-				routerPathLink.addProperty(Vocabulary.name,
-						model.createTypedLiteral(elementid));
-				ZigBeeSensorNode node0 = (ZigBeeSensorNode) link
-						.getLinkedDevices().get(0);
-				ZigBeeSensorNode node1 = (ZigBeeSensorNode) link
-						.getLinkedDevices().get(1);
+				routerPathLink.addProperty(Vocabulary.name, model.createTypedLiteral(elementid));
+				ZigBeeSensorNode node0 = (ZigBeeSensorNode) link.getLinkedDevices().get(0);
+				ZigBeeSensorNode node1 = (ZigBeeSensorNode) link.getLinkedDevices().get(1);
 				Link pathToSink0 = node0.getPath2sink();
 				Link pathToSink1 = node1.getPath2sink();
-				Resource resourceNode0 = model.getResource(Vocabulary.wsnNdlNS
-						+ node0.getID());
-				Resource resourceNode1 = model.getResource(Vocabulary.wsnNdlNS
-						+ node1.getID());
+				Resource resourceNode0 = model.getResource(Vocabulary.wsnNdlNS + node0.getID());
+				Resource resourceNode1 = model.getResource(Vocabulary.wsnNdlNS + node1.getID());
 				if (pathToSink0 != null && pathToSink0.equals(link)) {
-					resourceNode0.addProperty(Vocabulary.isSource,
-							routerPathLink);
-					resourceNode1
-							.addProperty(Vocabulary.isSink, routerPathLink);
+					resourceNode0.addProperty(Vocabulary.isSource, routerPathLink);
+					resourceNode1.addProperty(Vocabulary.isSink, routerPathLink);
 				} else if (pathToSink1 != null && pathToSink1.equals(link)) {
-					resourceNode0
-							.addProperty(Vocabulary.isSink, routerPathLink);
-					resourceNode1.addProperty(Vocabulary.isSource,
-							routerPathLink);
+					resourceNode0.addProperty(Vocabulary.isSink, routerPathLink);
+					resourceNode1.addProperty(Vocabulary.isSource, routerPathLink);
 				} else {
-					String message = "Incoherent information in path2sink for nodes: "
-							+ node0.getID() + " and " + node1.getID();
+					String message = "Incoherent information in path2sink for nodes: " + node0.getID() + " and "
+							+ node1.getID();
 					this.getLogger().severe(message);
 					throw new ShanksException(message);
 				}
 			} else if (element.getClass().equals(SensorLink.class)) {
 				SensorLink link = (SensorLink) element;
 				String elementid = link.getID();
-				Individual sensorLink = model.createIndividual(
-						Vocabulary.wsnNdlNS + elementid, Vocabulary.SensorLink);
-				sensorLink.addProperty(Vocabulary.name,
-						model.createTypedLiteral(elementid));
-				ZigBeeSensorNode node0 = (ZigBeeSensorNode) link
-						.getLinkedDevices().get(0);
-				ZigBeeSensorNode node1 = (ZigBeeSensorNode) link
-						.getLinkedDevices().get(1);
-				Resource resourceNode0 = model.getResource(Vocabulary.wsnNdlNS
-						+ node0.getID());
-				Resource resourceNode1 = model.getResource(Vocabulary.wsnNdlNS
-						+ node1.getID());
+				Individual sensorLink = model.createIndividual(Vocabulary.wsnNdlNS + elementid, Vocabulary.SensorLink);
+				sensorLink.addProperty(Vocabulary.name, model.createTypedLiteral(elementid));
+				ZigBeeSensorNode node0 = (ZigBeeSensorNode) link.getLinkedDevices().get(0);
+				ZigBeeSensorNode node1 = (ZigBeeSensorNode) link.getLinkedDevices().get(1);
+				Resource resourceNode0 = model.getResource(Vocabulary.wsnNdlNS + node0.getID());
+				Resource resourceNode1 = model.getResource(Vocabulary.wsnNdlNS + node1.getID());
 				if (node0.isZigBeeRouter()) {
 					resourceNode0.addProperty(Vocabulary.isSink, sensorLink);
 					resourceNode1.addProperty(Vocabulary.isSource, sensorLink);
@@ -435,8 +401,8 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 					resourceNode0.addProperty(Vocabulary.isSource, sensorLink);
 					resourceNode1.addProperty(Vocabulary.isSink, sensorLink);
 				} else {
-					String message = "Incoherent information in path2sink for nodes: "
-							+ node0.getID() + " and " + node1.getID();
+					String message = "Incoherent information in path2sink for nodes: " + node0.getID() + " and "
+							+ node1.getID();
 					this.getLogger().severe(message);
 					throw new ShanksException(message);
 				}
@@ -451,14 +417,10 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 	 * @param model
 	 * @throws FileNotFoundException
 	 */
-	private void loadSPINRules(String rulesFile, OntModel model)
-			throws FileNotFoundException {
+	private void loadSPINRules(String rulesFile, OntModel model) throws FileNotFoundException {
 
-		this.getLogger().fine(
-				"---> loadSPINRules(): Starting to load rules from "
-						+ rulesFile);
-		Scanner scanner = new Scanner(new File(rulesFile))
-				.useDelimiter("\\n---\\n");
+		this.getLogger().fine("---> loadSPINRules(): Starting to load rules from " + rulesFile);
+		Scanner scanner = new Scanner(new File(rulesFile)).useDelimiter("\\n---\\n");
 
 		int i = 0;
 		while (scanner.hasNext()) {
@@ -467,14 +429,11 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 			String rule = scanner.next();
 			Query arqQuery = ARQFactory.get().createQuery(model, rule);
 			ARQ2SPIN arq2SPIN = new ARQ2SPIN(model);
-			org.topbraid.spin.model.Query spinQuery = arq2SPIN.createQuery(
-					arqQuery, null);
+			org.topbraid.spin.model.Query spinQuery = arq2SPIN.createQuery(arqQuery, null);
 			Resource resource = model.getResource(uri);
 			resource.addProperty((Property) SPIN.rule, spinQuery);
 		}
-		this.getLogger().info(
-				"<--- loadSPINRules(): " + i + " rules loaded from file: "
-						+ rulesFile);
+		this.getLogger().info("<--- loadSPINRules(): " + i + " rules loaded from file: " + rulesFile);
 	}
 
 	/**
@@ -507,8 +466,7 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 			double noise = this.getGaussianNoise();
 
 			String sensorId = msgIdparts[0];
-			ZigBeeSensorNode sensor = (ZigBeeSensorNode) this.sim.getScenario()
-					.getCurrentElements().get(sensorId);
+			ZigBeeSensorNode sensor = (ZigBeeSensorNode) this.sim.getScenario().getCurrentElements().get(sensorId);
 
 			Double2D pos1 = this.getHardware().getPosition();
 			Double2D pos2 = sensor.getPosition();
@@ -522,9 +480,7 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 			}
 		}
 		if (lostMsgs.size() > 0 && inbox.size() > 0) {
-			this.getLogger().info(
-					this.getID() + "-> Ratio of lost messages: "
-							+ lostMsgs.size() + "/" + inbox.size());
+			this.getLogger().info(this.getID() + "-> Ratio of lost messages: " + lostMsgs.size() + "/" + inbox.size());
 		}
 		inbox.removeAll(lostMsgs);
 
@@ -563,39 +519,29 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 				double cpu = Double.parseDouble(contentData[0].split(":")[1]);
 				double mem = Double.parseDouble(contentData[1].split(":")[1]);
 				double tmp = Double.parseDouble(contentData[2].split(":")[1]);
-				boolean detecting = Boolean.parseBoolean(contentData[3]
-						.split(":")[1]);
+				String aux = contentData[3].split(":")[1];
+				boolean detecting = false;
+				if (aux.equals("T")) {
+					detecting = true;
+				}
 				double bat = Double.parseDouble(contentData[4].split(":")[1]);
 
 				// Create individual
-				Individual sensor = model.getIndividual(Vocabulary.wsnNdlNS
-						+ sensorId);
-				Individual ontMsg = model.createIndividual(
-						Vocabulary.diagnosisNS + sensorId + "_msgId-"
-								+ msgCounter, Vocabulary.ZigBeeMessage);
-				ontMsg.addProperty(Vocabulary.msgContent,
-						model.createTypedLiteral(content));
-				ontMsg.addProperty(Vocabulary.msgCounter,
-						model.createTypedLiteral(msgCounter));
-				ontMsg.addProperty(Vocabulary.msgID,
-						model.createTypedLiteral(id));
-				ontMsg.addProperty(Vocabulary.inReplyTo,
-						model.createTypedLiteral(reply));
-				ontMsg.addProperty(Vocabulary.emittedPower,
-						model.createTypedLiteral(power));
-				ontMsg.addProperty(Vocabulary.timemstamp,
-						model.createTypedLiteral(step));
+				Individual sensor = model.getIndividual(Vocabulary.wsnNdlNS + sensorId);
+				Individual ontMsg = model.createIndividual(Vocabulary.diagnosisNS + sensorId + "_msgId-" + msgCounter,
+						Vocabulary.ZigBeeMessage);
+				ontMsg.addProperty(Vocabulary.msgContent, model.createTypedLiteral(content));
+				ontMsg.addProperty(Vocabulary.msgCounter, model.createTypedLiteral(msgCounter));
+				ontMsg.addProperty(Vocabulary.msgID, model.createTypedLiteral(id));
+				ontMsg.addProperty(Vocabulary.inReplyTo, model.createTypedLiteral(reply));
+				ontMsg.addProperty(Vocabulary.emittedPower, model.createTypedLiteral(power));
+				ontMsg.addProperty(Vocabulary.timemstamp, model.createTypedLiteral(step));
 				ontMsg.addProperty(Vocabulary.isSentBy, sensor);
-				ontMsg.addProperty(Vocabulary.cpuLoad,
-						model.createTypedLiteral(cpu));
-				ontMsg.addProperty(Vocabulary.memoryLoad,
-						model.createTypedLiteral(mem));
-				ontMsg.addProperty(Vocabulary.temp,
-						model.createTypedLiteral(tmp));
-				ontMsg.addProperty(Vocabulary.isDetecting,
-						model.createTypedLiteral(detecting));
-				ontMsg.addProperty(Vocabulary.batteryLevel,
-						model.createTypedLiteral(bat));
+				ontMsg.addProperty(Vocabulary.cpuLoad, model.createTypedLiteral(cpu));
+				ontMsg.addProperty(Vocabulary.memoryLoad, model.createTypedLiteral(mem));
+				ontMsg.addProperty(Vocabulary.temp, model.createTypedLiteral(tmp));
+				ontMsg.addProperty(Vocabulary.isDetecting, model.createTypedLiteral(detecting));
+				ontMsg.addProperty(Vocabulary.batteryLevel, model.createTypedLiteral(bat));
 
 				for (int j = 0; j < i; j++) {
 					ontMsg.addProperty(Vocabulary.contains, allMsgs[j]);
@@ -603,18 +549,17 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 					allMsgs[j].addProperty(Vocabulary.isReceivedBy, sensor);
 				}
 
-				this.baseStationB2D2Agent.addProperty(Vocabulary.receives,
-						ontMsg);
-				ontMsg.addProperty(Vocabulary.isReceivedBy,
-						this.baseStationB2D2Agent);
+				this.baseStationB2D2Agent.addProperty(Vocabulary.receives, ontMsg);
+				ontMsg.addProperty(Vocabulary.isReceivedBy, this.baseStationB2D2Agent);
 				allMsgs[i] = ontMsg;
 
 				this.incomingMsgs.add(ontMsg);
 			}
 
 		}
-	}
 
+		inbox.clear();
+	}
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -624,69 +569,32 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 	 */
 	@Override
 	public void executeReasoningCycle(ShanksSimulation simulation) {
-		this.getLogger().finest(
-				"-> Reasoning cycle of " + this.getID() + " -> Step: "
-						+ simulation.schedule.getSteps());
+		this.getLogger()
+				.finest("-> Reasoning cycle of " + this.getID() + " -> Step: " + simulation.schedule.getSteps());
 
-		// TODO implement here the real reasoning cycle of the coordinator
+		SPINInferences.run(model, model, null, null, false, null);
 
-		for (Individual msg : this.incomingMsgs) {
-			long msgID = msg.getProperty(Vocabulary.msgCounter).getLong();
-			String sender = msg.getProperty(Vocabulary.isSentBy)
-					.getProperty(Vocabulary.name).getString();
-			this.getLogger().info(
-					"MSG RECEIVED -> msg id: " + msgID + " for sender: " + sender);
+		// Monitoring actions
 
-			// Check last message received
-			if (!this.lastKnownMsgs.containsKey(sender)) {
-				if (msgID == 0) {
-					this.lastKnownMsgs.put(sender, msgID);
-				} else if (msgID != 0) {
-					this.getLogger().warning(
-							"Lost message found. First message received from "
-									+ sender + " with id: " + msgID);
-					for (int i = 0; i < msgID; i++) {
-						// Create lost message individuals
-						Individual sensor = model
-								.getIndividual(Vocabulary.wsnNdlNS + sender);
-						Individual ontMsg = model.createIndividual(
-								Vocabulary.diagnosisNS + sender + "_lostMsgId-"
-										+ i, Vocabulary.LostMessage);
-						ontMsg.addProperty(Vocabulary.msgCounter,
-								model.createTypedLiteral(i));
-						// ontMsg.addProperty(Vocabulary.timemstamp,
-						// model.createTypedLiteral(step));
-						ontMsg.addProperty(Vocabulary.isSentBy, sensor);
-						this.lastKnownMsgs.put(sender, (long) i);
-					}
-				}
-			} else {
-				long lastId = this.lastKnownMsgs.get(sender);
-				if (msgID == lastId + 1) {
-					this.lastKnownMsgs.put(sender, msgID);
-				} else if (msgID > lastId + 1) {
-					this.getLogger().warning(
-							"Lost message found. Last message received from "
-									+ sender + " with id: " + msgID);
-					for (long i = (lastId + 1); i < msgID; i++) {
-						// Create lost message individuals
-						Individual sensor = model
-								.getIndividual(Vocabulary.wsnNdlNS + sender);
-						Individual ontMsg = model.createIndividual(
-								Vocabulary.diagnosisNS + sender + "_lostMsgId-"
-										+ i, Vocabulary.LostMessage);
-						ontMsg.addProperty(Vocabulary.msgCounter,
-								model.createTypedLiteral(i));
-						// ontMsg.addProperty(Vocabulary.timemstamp,
-						// model.createTypedLiteral(step));
-						ontMsg.addProperty(Vocabulary.isSentBy, sensor);
-						this.lastKnownMsgs.put(sender, (long) i);
-					}
-				}
-			}
-		}
+		this.discoverLostMessages(incomingMsgs);
+
+		// TODO estimar tasas de mensajes perdidos
+		
+		this.estimateTargetZones(incomingMsgs, simulation);
+
+		// TODO generate nodos sospechosos
 
 		this.incomingMsgs.clear();
+
+		// Diagnosis actions
+
+		// TODO analizar historicos de cpu, temp y memoria
+
+		// TODO crear o no un diagnóstico para razonar con la BN
+
+		/**
+		 * QUERY EXAMPLE - START
+		 */
 
 		// Search in messages and create lost messages
 		// String query =
@@ -726,17 +634,10 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 		// }
 		// }
 
-		
-		// TODO calcular posicion
-		
-		// TODO detectar falsos positivos y falsos negativos
-		
-		// TODO estimar tasas de mensajes perdidos
-		
-		// TODO analizar historicos de cpu, temp y memoria
-		
-		// TODO crear o no un diagnóstico para razonar con la BN
-		
+		/**
+		 * QUERY EXAMPLE - END
+		 */
+
 		// This code snippet is for debugging with TBC
 		// Perform some queries and get simple numeric results.
 		if (simulation.getSchedule().getSteps() % 50 == 0) {
@@ -749,6 +650,226 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 				this.performQueries(model);
 			} catch (IOException e) {
 				e.printStackTrace();
+			}
+		}
+	}
+
+	/**
+	 * @param incomingMessages
+	 * @param simulation
+	 */
+	private void estimateTargetZones(List<Individual> incomingMessages, ShanksSimulation simulation) {
+		// Explore detecting sensors to know where is the target
+		for (Individual msg : this.incomingMsgs) {
+			// If any sensor is detecting, the target should be in that region.
+			boolean detecting = msg.getProperty(Vocabulary.isDetecting).getBoolean();
+			if (detecting) {
+				Resource sensor = msg.getProperty(Vocabulary.isSentBy).getResource();
+				String name = sensor.getProperty(Vocabulary.name).getString();
+				Resource location = sensor.getProperty(Vocabulary.locatedAt).getResource();
+				double x = location.getProperty(Vocabulary.longitude).getFloat();
+				double y = location.getProperty(Vocabulary.latitude).getFloat();
+				Resource motionSensor = sensor.getProperty(Vocabulary.hasSensor).getResource();
+				double range = motionSensor.getProperty(Vocabulary.hasPerceptionRange).getDouble();
+
+				/**
+				 * The size of this rectangle is to ensure there is no false
+				 * negative while intersection calculation. It should be: (x -
+				 * (range), y - (range), range*2,range*2) But, the randomiser
+				 * used in the sensor detecting code, it more or less sensitive.
+				 * 
+				 * This size is enough to ensure empty target zones are really
+				 * empties.
+				 */
+				Rectangle2D rect = new Rectangle2D.Double(x - (range), y - (range), range * 2, range * 2);
+				Area candidateZone = new Area(rect);
+
+				long step = msg.getProperty(Vocabulary.timemstamp).getLong();
+				this.getLogger().fine(
+						"Calculating target zone with detecting message from " + name + " generated in step: " + step);
+				if (this.targetZones.get(step) == null) {
+					/**
+					 * Is it required here to measure the speed and the possible
+					 * next region? If that is done, we can detect false
+					 * positive while no other sensor are detecting But it is
+					 * really complex and it would be useful in a few cases...
+					 */
+					this.targetZones.put(step, candidateZone);
+				} else {
+					Area copy = (Area) this.targetZones.get(step).clone();
+					copy.intersect(candidateZone);
+					if (copy.isEmpty()) {
+						/**
+						 * This snippet works only if there is a unique target
+						 * agent (1 targetAgent)
+						 * 
+						 * If there are more agents, it should be more
+						 * targetZones hashmaps (one per agent)
+						 */
+						this.getLogger().warning(
+								"Empty target zone! Warning of false positive -> hardware sensor possible!");
+						/**
+						 * This snippet looks for the damaged sensor
+						 * 
+						 * It explores messages to know if other close sensors
+						 * detects the target in the same, the previous or the
+						 * following steps and count the most common opinion.
+						 */
+						// 1st - Detect possible regions
+						HashMap<Resource, Double2D> detectingSensors = new HashMap<Resource, Double2D>();
+						String query = "SELECT (?x as ?msg) WHERE { ?x a b2d2-wsn:ZigBeeMessage . ?x b2d2-wsn:isDetecting true . ?x b2d2-wsn:timestamp "
+								+ step + " . }";
+						Query arqQuery = ARQFactory.get().createQuery(model, query);
+						QueryExecution qExe = QueryExecutionFactory.create(arqQuery, model);
+						ResultSet results = qExe.execSelect();
+						while (results.hasNext()) {
+							QuerySolution result = results.next();
+							Resource detectingMessage = result.getResource("msg");
+							Resource detectingSensor = detectingMessage.getProperty(Vocabulary.isSentBy).getResource();
+							Resource detectingLocation = detectingSensor.getProperty(Vocabulary.locatedAt)
+									.getResource();
+							long detectingX = detectingLocation.getProperty(Vocabulary.longitude).getLong();
+							long detectingY = detectingLocation.getProperty(Vocabulary.latitude).getLong();
+							Double2D detectingPosition = new Double2D(detectingX, detectingY);
+							detectingSensors.put(detectingSensor, detectingPosition);
+						}
+
+						// 2nd - Vote for a region
+						HashMap<Resource, Double> distances = new HashMap<Resource, Double>();
+						/**
+						 * The window should have width enough to ensure other
+						 * sensors detect something. But not too much to avoid
+						 * conflicts... 10<=windowLength<=100
+						 */
+						int windowLength = 50;
+						Resource farDistanceSensor = null;
+						while (farDistanceSensor == null) {
+							this.countVotesForRegions(windowLength, step, detectingSensors, distances);
+
+							// 3rd - Pick the less popular choice avoiding ties
+							double maxTotalDistance = Collections.max(distances.values());
+							Resource provisionalFarDistanceSensor = null;
+							boolean tieDetected = false;
+							for (Entry<Resource, Double> entry : distances.entrySet()) {
+								if (entry.getValue() == maxTotalDistance) {
+									if (provisionalFarDistanceSensor == null) {
+										provisionalFarDistanceSensor = entry.getKey();
+									} else {
+										tieDetected = true;
+										break;
+									}
+								}
+							}
+							if (!tieDetected) {
+								farDistanceSensor = provisionalFarDistanceSensor;
+							} else {
+								this.getLogger().warning("Tie detected! Increasing window length!");
+								distances.clear();
+								windowLength = windowLength + 5;
+							}
+						}
+						// 4th - Generate a possible hardware sensor fault
+						this.getLogger().info(
+								"Possible hardware sensor problem for sensor: "
+										+ farDistanceSensor.getProperty(Vocabulary.name).getString());
+						// TODO create observation
+						this.getLogger().warning("Ahora tienes que crear la observación");
+					} else {
+						this.targetZones.put(step, copy);
+					}
+
+				}
+
+			}
+		}
+	}
+	/**
+	 * @param windowLength
+	 * @param step
+	 * @param detectingSensors
+	 * @param distances
+	 */
+	private void countVotesForRegions(int windowLength, long step, HashMap<Resource, Double2D> detectingSensors,
+			HashMap<Resource, Double> distances) {
+		long initialTimestamp = step - windowLength / 2;
+		long finalTimestamp = step + windowLength / 2;
+		String query = "SELECT (?x as ?msg) WHERE { ?x a b2d2-wsn:ZigBeeMessage . ?x b2d2-wsn:isDetecting true . ?x b2d2-wsn:timestamp ?tmp FILTER (?tmp >= "
+				+ initialTimestamp + " && ?tmp <= " + finalTimestamp + ") }";
+		Query arqQuery = ARQFactory.get().createQuery(model, query);
+		QueryExecution qExe = QueryExecutionFactory.create(arqQuery, model);
+		ResultSet results = qExe.execSelect();
+		List<String> alreadyVoted = new ArrayList<String>();
+		while (results.hasNext()) {
+			QuerySolution result = results.next();
+			Resource resource = result.getResource("msg");
+			String sensorName = resource.getProperty(Vocabulary.isSentBy).getProperty(Vocabulary.name).getString();
+			if (!alreadyVoted.contains(sensorName)) {
+				alreadyVoted.add(sensorName);
+				Resource auxlocation = resource.getProperty(Vocabulary.isSentBy).getProperty(Vocabulary.locatedAt)
+						.getResource();
+				long auxX = auxlocation.getProperty(Vocabulary.longitude).getLong();
+				long auxY = auxlocation.getProperty(Vocabulary.latitude).getLong();
+				Double2D auxPosition = new Double2D(auxX, auxY);
+				for (Entry<Resource, Double2D> entry : detectingSensors.entrySet()) {
+					double distance = auxPosition.distance(entry.getValue());
+					if (distances.containsKey(entry.getKey())) {
+						double previous = distances.get(entry.getKey());
+						distances.put(entry.getKey(), previous + distance);
+					} else {
+						distances.put(entry.getKey(), distance);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * @param incomingMessages
+	 */
+	private void discoverLostMessages(List<Individual> incomingMessages) {
+		for (Individual msg : this.incomingMsgs) {
+			long msgID = msg.getProperty(Vocabulary.msgCounter).getLong();
+			String sender = msg.getProperty(Vocabulary.isSentBy).getProperty(Vocabulary.name).getString();
+			this.getLogger().finer("MSG RECEIVED -> msg id: " + msgID + " for sender: " + sender);
+
+			// Check last message received -> Discover lost messages
+			if (!this.lastKnownMsgs.containsKey(sender)) {
+				if (msgID == 0) {
+					this.lastKnownMsgs.put(sender, msgID);
+				} else if (msgID != 0) {
+					this.getLogger().warning(
+							"Lost message found. First message received from " + sender + " with id: " + msgID);
+					for (int i = 0; i < msgID; i++) {
+						// Create lost message individuals
+						Individual sensor = model.getIndividual(Vocabulary.wsnNdlNS + sender);
+						Individual ontMsg = model.createIndividual(Vocabulary.diagnosisNS + sender + "_lostMsgId-" + i,
+								Vocabulary.LostMessage);
+						ontMsg.addProperty(Vocabulary.msgCounter, model.createTypedLiteral(i));
+						// ontMsg.addProperty(Vocabulary.timemstamp,
+						// model.createTypedLiteral(step));
+						ontMsg.addProperty(Vocabulary.isSentBy, sensor);
+						this.lastKnownMsgs.put(sender, (long) i);
+					}
+				}
+			} else {
+				long lastId = this.lastKnownMsgs.get(sender);
+				if (msgID == lastId + 1) {
+					this.lastKnownMsgs.put(sender, msgID);
+				} else if (msgID > lastId + 1) {
+					this.getLogger().warning(
+							"Lost message found. Last message received from " + sender + " with id: " + msgID);
+					for (long i = (lastId + 1); i < msgID; i++) {
+						// Create lost message individuals
+						Individual sensor = model.getIndividual(Vocabulary.wsnNdlNS + sender);
+						Individual ontMsg = model.createIndividual(Vocabulary.diagnosisNS + sender + "_lostMsgId-" + i,
+								Vocabulary.LostMessage);
+						ontMsg.addProperty(Vocabulary.msgCounter, model.createTypedLiteral(i));
+						// ontMsg.addProperty(Vocabulary.timemstamp,
+						// model.createTypedLiteral(step));
+						ontMsg.addProperty(Vocabulary.isSentBy, sensor);
+						this.lastKnownMsgs.put(sender, (long) i);
+					}
+				}
 			}
 		}
 	}
