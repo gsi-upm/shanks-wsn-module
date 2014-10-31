@@ -59,7 +59,7 @@ public class WSNSimulationLauncher {
 		// Properties to configure scenario
 		Properties scenarioProperties = new Properties();
 		scenarioProperties.put(Scenario.SIMULATION_GUI, Scenario.SIMULATION_2D);
-		scenarioProperties.put(WSNScenario.RANDOM_SEED, "3");
+		scenarioProperties.put(WSNScenario.RANDOM_SEED, "40");
 		/**
 		 * File that contains rules in .rls format
 		 */
