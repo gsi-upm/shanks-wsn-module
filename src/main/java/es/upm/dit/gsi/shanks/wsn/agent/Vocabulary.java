@@ -53,7 +53,10 @@ public class Vocabulary {
 	public static final String nmlBaseNS = "http://schemas.ogf.org/nml/2013/05/base#";
 	public static final String indlNS = "http://www.science.uva.nl/research/sne/indl#";
 
-	// Classes
+	/**
+	 * Resource for Ontology Classes
+	 */
+	// Resources for hardware description
 	public static final Resource ZigBeeMessage = m_model.createResource(diagnosisNS + "ZigBeeMessage");
 	public static final Resource LostMessage = m_model.createResource(diagnosisNS + "LostMessage");
 	public static final Resource BaseStation = m_model.createResource(wsnNdlNS + "ZigBeeBaseStation");
@@ -65,12 +68,25 @@ public class Vocabulary {
 	public static final Resource Motionsensor = m_model.createResource(wsnNdlNS + "Panasonic_PIR_WL_Series");
 	public static final Resource RoutePathLink = m_model.createResource(wsnNdlNS + "RoutePathLink");
 	public static final Resource SensorLink = m_model.createResource(wsnNdlNS + "SensorLink");
+	// Resources for diagnosis description
+	public static final Resource Hypothesis = m_model.createResource(wsnNdlNS + "Hypothesis");
+	public static final Resource Observation = m_model.createResource(wsnNdlNS + "Observation");
+	public static final Resource Diagnosis = m_model.createResource(wsnNdlNS + "Diagnosis");
+	// Resources for faults taxonomy usage
+	public static final Resource SensorFailure = m_model.createResource(wsnNdlNS + "SensorFailure");
 
-	// Object properties
+	/**
+	 * Object Properties 
+	 */
+	// Properties for hardware language
 	public static final Property locatedAt = m_model.createProperty(nmlBaseNS + "locatedAt");
 	public static final Property isSource = m_model.createProperty(nmlBaseNS + "isSource");
 	public static final Property isSink = m_model.createProperty(nmlBaseNS + "isSink");
 	public static final Property hasComponent = m_model.createProperty(indlNS + "hasComponent");
+	public static final Property hasSensor = m_model.createProperty(wsnNdlNS + "hasSensor");
+	public static final Property hasTransceiver = m_model.createProperty(wsnNdlNS + "hasTransceiver");
+	public static final Property hasMemory = m_model.createProperty(wsnNdlNS + "hasMemory");
+	public static final Property hasCPU = m_model.createProperty(wsnNdlNS + "hasCPU");
 	public static final Property contains = m_model.createProperty(wsnNdlNS + "contains");
 	public static final Property executesIn = m_model.createProperty(wsnNdlNS + "executesIn");
 	public static final Property hosts = m_model.createProperty(wsnNdlNS + "hosts");
@@ -79,8 +95,19 @@ public class Vocabulary {
 	public static final Property receives = m_model.createProperty(wsnNdlNS + "receives");
 	public static final Property resendMessage = m_model.createProperty(wsnNdlNS + "resendMessage");
 	public static final Property sends = m_model.createProperty(wsnNdlNS + "sends");
-	
-	// Datatype properties
+	// Properties for faults
+	public static final Property possibleFault = m_model.createProperty(wsnNdlNS + "possibleFault");
+	public static final Property hasFault = m_model.createProperty(wsnNdlNS + "hasFault");
+	public static final Property affects = m_model.createProperty(wsnNdlNS + "affects");
+	public static final Property isAffectedBy = m_model.createProperty(wsnNdlNS + "isAffectedBy");
+	// Properties for diagnosis
+	public static final Property hasHypothesis = m_model.createProperty(wsnNdlNS + "hasHypothesis");
+	public static final Property hasObservation = m_model.createProperty(wsnNdlNS + "hasObservation");
+
+	/**
+	 * Datatype properties
+	 */
+	// Properties for hardware
 	public static final Property latitude = m_model.createProperty(nmlBaseNS + "lat");
 	public static final Property longitude = m_model.createProperty(nmlBaseNS + "long");
 	public static final Property cores = m_model.createProperty(indlNS + "cores");
@@ -100,5 +127,5 @@ public class Vocabulary {
 	public static final Property timemstamp = m_model.createProperty(wsnNdlNS + "timestamp");
 	public static final Property emittedPower = m_model.createProperty(wsnNdlNS + "emittedPower");
 	public static final Property isDetecting = m_model.createProperty(wsnNdlNS + "isDetecting");
-	
+
 }
