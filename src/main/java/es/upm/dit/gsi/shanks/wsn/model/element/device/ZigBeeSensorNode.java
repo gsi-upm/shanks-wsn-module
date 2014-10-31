@@ -18,10 +18,10 @@
 package es.upm.dit.gsi.shanks.wsn.model.element.device;
 
 import java.util.HashMap;
-import java.util.Random;
 import java.util.logging.Logger;
 
 import sim.util.Double2D;
+import ec.util.MersenneTwisterFast;
 import es.upm.dit.gsi.shanks.agent.ShanksAgent;
 import es.upm.dit.gsi.shanks.exception.ShanksException;
 import es.upm.dit.gsi.shanks.model.element.device.Device;
@@ -69,7 +69,7 @@ public class ZigBeeSensorNode extends Device {
 
 	private double temp;
 
-	private Random rnd;
+	private MersenneTwisterFast rnd;
 
 	private double sensorDamagedPctg;
 
@@ -87,7 +87,7 @@ public class ZigBeeSensorNode extends Device {
 	 * @param rnd
 	 */
 	public ZigBeeSensorNode(String id, String initialState, boolean isGateway, Logger logger, Double2D position,
-			Battery battery, Random rnd) {
+			Battery battery, MersenneTwisterFast rnd) {
 		super(id, initialState, isGateway, logger);
 		this.rnd = rnd;
 		this.setPosition(position);

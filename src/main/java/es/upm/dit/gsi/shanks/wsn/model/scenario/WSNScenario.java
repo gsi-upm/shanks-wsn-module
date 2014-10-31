@@ -23,11 +23,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.Random;
 import java.util.Set;
 import java.util.logging.Logger;
 
 import sim.util.Double2D;
+import ec.util.MersenneTwisterFast;
 import es.upm.dit.gsi.shanks.exception.ShanksException;
 import es.upm.dit.gsi.shanks.model.element.NetworkElement;
 import es.upm.dit.gsi.shanks.model.element.device.Device;
@@ -132,10 +132,6 @@ public class WSNScenario extends Scenario {
 		for (WSNScenarioStates state : WSNScenarioStates.values()) {
 			this.addPossibleStatus(state.toString());
 		}
-		// this.addPossibleStatus("SUNNY");
-		// this.addPossibleStatus("CLOUDY");
-		// this.addPossibleStatus("RAINY");
-		// this.addPossibleStatus("STORM");
 	}
 
 	/*
@@ -151,7 +147,7 @@ public class WSNScenario extends Scenario {
 		Properties properties = this.getProperties();
 		String seedString = properties.getProperty(WSNScenario.RANDOM_SEED);
 		long seed = new Integer(seedString);
-		Random rnd = new Random(seed);
+		MersenneTwisterFast rnd = new MersenneTwisterFast(seed);
 		String sensorsString = properties.getProperty(SENSORS);
 		this.sensorsNum = new Integer(sensorsString);
 		String fieldWidth = properties.getProperty(FIELD_WIDTH);
