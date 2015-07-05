@@ -42,7 +42,7 @@ import es.upm.dit.gsi.shanks.wsn.model.element.device.ZigBeeSensorNode;
  */
 public class CpuHardwareFailure extends Failure {
 	
-	private static double prob = 0.0001;
+	private static double prob = 1/100000;
 	
 	/**
 	 * Constructor

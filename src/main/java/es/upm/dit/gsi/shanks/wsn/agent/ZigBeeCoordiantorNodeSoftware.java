@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.Scanner;
 import java.util.logging.Logger;
 
@@ -50,8 +51,8 @@ import com.hp.hpl.jena.query.QueryExecution;
 import com.hp.hpl.jena.query.QueryExecutionFactory;
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
-import com.hp.hpl.jena.query.ResultSetFormatter;
 import com.hp.hpl.jena.rdf.model.InfModel;
+import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Property;
@@ -163,7 +164,7 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 			SPINInferences.run(model, model, null, null, false, null);
 			this.getLogger().info("Size after inference: " + model.size());
 
-			this.writeModelInFiles(model);
+			this.writeModelInFiles(model, sim);
 
 		} catch (FileNotFoundException e) {
 			this.getLogger().severe("File not found: " + e.getMessage());
@@ -180,8 +181,10 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 	 * @param model
 	 * @throws IOException
 	 */
-	private void writeModelInFiles(OntModel model) throws IOException {
-		FileWriter fw = new FileWriter("src/main/resources/result.rdf");
+	private void writeModelInFiles(OntModel model, ShanksSimulation sim) throws IOException {
+		String simId = (String) sim.getScenario().getProperties().get("SimID");
+		String outputFolder = (String) sim.getScenario().getProperties().get("OutputFolder");
+		FileWriter fw = new FileWriter(outputFolder+"ndl-result-simID-"+simId+".rdf");
 		model.write(fw);
 		fw.close();
 
@@ -194,29 +197,46 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 	/**
 	 * @param model
 	 */
-	private void performQueries(OntModel model) {
+	private void performQueries(OntModel model, ShanksSimulation simulation) {
 
-		String query = "SELECT (COUNT(?node) AS ?cluster) WHERE { ?node a wsn-ndl:Cluster . }";
-		Query arqQuery = ARQFactory.get().createQuery(model, query);
-		QueryExecution qExe = QueryExecutionFactory.create(arqQuery, model);
-		ResultSet results = qExe.execSelect();
-		ResultSetFormatter.out(System.out, results);
+		String query;
+		Query arqQuery;
+		QueryExecution qExe;
+		ResultSet results;
+
+		// query =
+		// "SELECT (COUNT(?node) AS ?clusterCount) WHERE { ?node a wsn-ndl:Cluster . }";
+		// arqQuery = ARQFactory.get().createQuery(model, query);
+		// qExe = QueryExecutionFactory.create(arqQuery, model);
+		// results = qExe.execSelect();
+		// ResultSetFormatter.out(System.out, results);
 		/**
 		 *
 		 */
-		query = "SELECT (COUNT(?node) AS ?wsnTopology) WHERE { ?node a wsn-ndl:WSNTopology . }";
-		arqQuery = ARQFactory.get().createQuery(model, query);
-		qExe = QueryExecutionFactory.create(arqQuery, model);
-		results = qExe.execSelect();
-		ResultSetFormatter.out(System.out, results);
+		// query =
+		// "SELECT (?node AS ?clusters) WHERE { ?node a wsn-ndl:Cluster . }";
+		// arqQuery = ARQFactory.get().createQuery(model, query);
+		// qExe = QueryExecutionFactory.create(arqQuery, model);
+		// results = qExe.execSelect();
+		// ResultSetFormatter.out(System.out, results);
 		/**
 		 *
 		 */
-		query = "SELECT (COUNT(?node) AS ?router) WHERE { ?node a wsn-ndl:ZigBeeRouter . }";
-		arqQuery = ARQFactory.get().createQuery(model, query);
-		qExe = QueryExecutionFactory.create(arqQuery, model);
-		results = qExe.execSelect();
-		ResultSetFormatter.out(System.out, results);
+		// query =
+		// "SELECT (COUNT(?node) AS ?wsnTopologyCount) WHERE { ?node a wsn-ndl:WSNTopology . }";
+		// arqQuery = ARQFactory.get().createQuery(model, query);
+		// qExe = QueryExecutionFactory.create(arqQuery, model);
+		// results = qExe.execSelect();
+		// ResultSetFormatter.out(System.out, results);
+		/**
+		 *
+		 */
+		// query =
+		// "SELECT (COUNT(?node) AS ?router) WHERE { ?node a wsn-ndl:ZigBeeRouter . }";
+		// arqQuery = ARQFactory.get().createQuery(model, query);
+		// qExe = QueryExecutionFactory.create(arqQuery, model);
+		// results = qExe.execSelect();
+		// ResultSetFormatter.out(System.out, results);
 		/**
 		 *
 		 */
@@ -224,7 +244,13 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 		arqQuery = ARQFactory.get().createQuery(model, query);
 		qExe = QueryExecutionFactory.create(arqQuery, model);
 		results = qExe.execSelect();
-		ResultSetFormatter.out(System.out, results);
+		// ResultSetFormatter.out(System.out, results);
+//		ResultSetFormatter.outputAsCSV(System.out, results);
+		
+		QuerySolution result = results.next();
+		Literal lit = result.getLiteral("leafRouters");
+		String leafRouters = lit.getString();
+		
 		/**
 		 *
 		 */
@@ -232,34 +258,61 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 		arqQuery = ARQFactory.get().createQuery(model, query);
 		qExe = QueryExecutionFactory.create(arqQuery, model);
 		results = qExe.execSelect();
-		ResultSetFormatter.out(System.out, results);
-		/**
-		 *
-		 */
-		query = "SELECT (COUNT(?node) AS ?motionSensor) WHERE { ?node a b2d2-wsn:MotionSensor . }";
-		arqQuery = ARQFactory.get().createQuery(model, query);
-		qExe = QueryExecutionFactory.create(arqQuery, model);
-		results = qExe.execSelect();
-		ResultSetFormatter.out(System.out, results);
-		/**
-		 *
-		 */
-		query = "SELECT (COUNT(?msg) AS ?receivedByB2D2Agent) WHERE { ?agent a wsn-ndl:ZigBeeBaseStation . ?msg wsn-ndl:isReceivedBy ?agent . }";
-		arqQuery = ARQFactory.get().createQuery(model, query);
-		qExe = QueryExecutionFactory.create(arqQuery, model);
-		results = qExe.execSelect();
-		ResultSetFormatter.out(System.out, results);
-		/**
-		 *
-		 */
-		query = "SELECT (COUNT(?msg) AS ?B2D2AgentReceives) WHERE { ?agent a wsn-ndl:ZigBeeBaseStation . ?agent wsn-ndl:receives ?msg . }";
-		arqQuery = ARQFactory.get().createQuery(model, query);
-		qExe = QueryExecutionFactory.create(arqQuery, model);
-		results = qExe.execSelect();
-		ResultSetFormatter.out(System.out, results);
+		// ResultSetFormatter.out(System.out, results);
+//		ResultSetFormatter.outputAsCSV(System.out, results);
+		
 
+		result = results.next();
+		lit = result.getLiteral("message");
+		String messages = lit.getString();
+		/**
+		 *
+		 */
+		// query =
+		// "SELECT (COUNT(?node) AS ?motionSensor) WHERE { ?node a b2d2-wsn:MotionSensor . }";
+		// arqQuery = ARQFactory.get().createQuery(model, query);
+		// qExe = QueryExecutionFactory.create(arqQuery, model);
+		// results = qExe.execSelect();
+		// ResultSetFormatter.out(System.out, results);
+		/**
+		 *
+		 */
+		// query =
+		// "SELECT (COUNT(?msg) AS ?receivedByB2D2Agent) WHERE { ?agent a wsn-ndl:ZigBeeBaseStation . ?msg wsn-ndl:isReceivedBy ?agent . }";
+		// arqQuery = ARQFactory.get().createQuery(model, query);
+		// qExe = QueryExecutionFactory.create(arqQuery, model);
+		// results = qExe.execSelect();
+		// ResultSetFormatter.out(System.out, results);
+		/**
+		 *
+		 */
+//		query = "SELECT (COUNT(?msg) AS ?B2D2AgentReceives) WHERE { ?agent a wsn-ndl:ZigBeeBaseStation . ?agent wsn-ndl:receives ?msg . }";
+//		arqQuery = ARQFactory.get().createQuery(model, query);
+//		qExe = QueryExecutionFactory.create(arqQuery, model);
+//		results = qExe.execSelect();
+//		// ResultSetFormatter.out(System.out, results);
+//		ResultSetFormatter.outputAsCSV(System.out, results);
+
+		/**
+		 *
+		 */
+		query = "SELECT (COUNT(?lostmsg) AS ?LostMessages) WHERE { ?lostmsg a wsn-ndl:LostMessage . }";
+		arqQuery = ARQFactory.get().createQuery(model, query);
+		qExe = QueryExecutionFactory.create(arqQuery, model);
+		results = qExe.execSelect();
+		// ResultSetFormatter.out(System.out, results);
+//		ResultSetFormatter.outputAsCSV(System.out, results);
+		
+
+		result = results.next();
+		lit = result.getLiteral("LostMessages");
+		String lostmessages = lit.getString();
+		
+		Properties props = simulation.getScenario().getProperties();
+		props.put("lostMsgs", lostmessages);
+		props.put("msgs", messages);
+		props.put("leafRouters", leafRouters);
 	}
-
 	/**
 	 * 
 	 * Check reasoning inference (no spin rules infereces, only OWL inferences
@@ -576,13 +629,17 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 
 		// Monitoring actions
 
-		this.discoverLostMessages(incomingMsgs);
+		List<Individual> lostMessagesDiscovered = this.discoverLostMessages(incomingMsgs);
 
-		// TODO estimar tasas de mensajes perdidos
-		
+		this.analyseLostMessages(lostMessagesDiscovered);
+
+		// TODO estimateTargetZones se ha comentado porque daba un error
 		this.estimateTargetZones(incomingMsgs, simulation);
 
-		// TODO generate nodos sospechosos
+		// TODO generate nodos sospechosos:
+		// para false positives and false negatives
+		// &
+		// culpable de mensajes perdidos
 
 		this.incomingMsgs.clear();
 
@@ -592,66 +649,82 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 
 		// TODO crear o no un diagnóstico para razonar con la BN
 
-		/**
-		 * QUERY EXAMPLE - START
-		 */
-
-		// Search in messages and create lost messages
-		// String query =
-		// "SELECT (?x as ?msg) WHERE { ?x a b2d2-wsn:ZigBeeMessage . ?x b2d2-wsn:timestamp ?tmp FILTER (?tmp >= "
-		// + this.lastStepAnalysed + ") }";
-		// Query arqQuery = ARQFactory.get().createQuery(model, query);
-		// QueryExecution qExe = QueryExecutionFactory.create(arqQuery, model);
-		// ResultSet results = qExe.execSelect();
-		// while (results.hasNext()) {
-		// QuerySolution result = results.next();
-		// this.getLogger().info("Result: " + result.toString());
-		// Resource resource = result.getResource("msg");
-		// long msgID = resource.getProperty(Vocabulary.msgCounter).getLong();
-		// String sender = resource.getProperty(Vocabulary.isSentBy)
-		// .getProperty(Vocabulary.name).getString();
-		// this.getLogger().info(
-		// "Result msg id: " + msgID + " for sender: " + sender);
-		//
-		// //Check last message received
-		// if (!this.lastKnownMsgs.containsKey(sender)) {
-		// if (msgID > 0) {
-		// this.getLogger().warning(
-		// "Lost message found. First message received from "
-		// + sender + " with id: " + msgID);
-		// } else if (msgID == 0) {
-		// this.lastKnownMsgs.put(sender, msgID);
-		// }
-		// } else {
-		// long lastId = this.lastKnownMsgs.get(sender);
-		// if (msgID > lastId + 1) {
-		// this.getLogger().warning(
-		// "Lost message found. Last message received from "
-		// + sender + " with id: " + msgID);
-		// } else if (msgID == lastId + 1) {
-		// this.lastKnownMsgs.put(sender, msgID);
-		// }
-		// }
-		// }
-
-		/**
-		 * QUERY EXAMPLE - END
-		 */
-
 		// This code snippet is for debugging with TBC
 		// Perform some queries and get simple numeric results.
-		if (simulation.getSchedule().getSteps() % 50 == 0) {
-			this.performQueries(model);
+
+		String maxSteps = simulation.getScenario().getProperties().getProperty("MaxSteps");
+		int steps = Integer.parseInt(maxSteps);
+
+		if (simulation.getSchedule().getSteps() % steps == 0 && simulation.getSchedule().getSteps() != 0) {
+			// this.performQueries(model);
 			this.getLogger().info("Size before inference: " + model.size());
 			SPINInferences.run(model, model, null, null, false, null);
 			this.getLogger().info("Size after inference: " + model.size());
 			try {
-				this.writeModelInFiles(model);
-				this.performQueries(model);
+				this.writeModelInFiles(model,sim);
+				this.performQueries(model, simulation);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
+		if (simulation.getSchedule().getSteps() % 500 == 0) {
+			System.out.println("Step: " + simulation.getSchedule().getSteps());
+		}
+	}
+	/**
+	 * @param lostMessagesDiscovered
+	 * 
+	 */
+	private void analyseLostMessages(List<Individual> lostMessagesDiscovered) {
+
+		HashMap<String, Integer> lostMsgsBySender = new HashMap<String, Integer>();
+
+		for (Individual lostMsg : lostMessagesDiscovered) {
+			String sender = lostMsg.getProperty(Vocabulary.isSentBy).getProperty(Vocabulary.name).getString();
+			if (!lostMsgsBySender.containsKey(sender)) {
+				lostMsgsBySender.put(sender, 1);
+			} else {
+				int counter = lostMsgsBySender.get(sender);
+				lostMsgsBySender.put(sender, counter + 1);
+			}
+		}
+
+		// Map with sender - routers in path
+		HashMap<String, List<Resource>> paths = new HashMap<String, List<Resource>>();
+
+		for (String sender : lostMsgsBySender.keySet()) {
+			// Get router by node
+			String query = "SELECT (?rs as ?routers) " + "WHERE {" + " ?s a b2d2-wsn:MicaZ ." + " ?s nml-base:name "
+					+ "\"" + sender + "\"^^xsd:string ." + " ?c a b2d2-wsn:Cluster ." + " ?c nml-base:hasNode ?s . "
+					+ " ?r a b2d2-wsn:ZigBeeRouter ." + " ?c nml-base:hasNode ?r ."
+					+ " ?p a b2d2-wsn:PathToBaseStation ." + " ?p nml-base:hasTopology ?c ."
+					+ " ?p nml-base:hasNode ?rs ." + " ?rs a b2d2-wsn:ZigBeeRouter ." + " }";
+			Query arqQuery = ARQFactory.get().createQuery(model, query);
+			QueryExecution qExe = QueryExecutionFactory.create(arqQuery, model);
+			ResultSet results = qExe.execSelect();
+
+			this.getLogger().fine("Sender " + sender + " lostMsgs-> " + lostMsgsBySender.get(sender));
+
+			List<Resource> routersInPath = new ArrayList<Resource>();
+			while (results.hasNext()) {
+				QuerySolution result_router = results.next();
+				Resource path_router_resource = result_router.getResource("routers");
+				if (!routersInPath.contains(path_router_resource)) {
+					routersInPath.add(path_router_resource);
+				}
+			}
+			// Add the path to explored paths list
+			paths.put(sender, routersInPath);
+
+		}
+
+		// TODO analizar si tienen path común
+		// 3: ver si desde ese router hay un path común hasta el base
+		// station
+		for (Entry<String, List<Resource>> entry : paths.entrySet()) {
+			this.getLogger().warning(entry.toString());
+		}
+
 	}
 
 	/**
@@ -766,14 +839,24 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 								this.getLogger().warning("Tie detected! Increasing window length!");
 								distances.clear();
 								windowLength = windowLength + 5;
+								if (windowLength > simulation.getSchedule().getSteps()) {
+									// Impossible to do any metric...
+									// Possible infinite loop here, mandatory ->
+									// break the tie in anyway
+									break;
+								}
 							}
 						}
 						// 4th - Generate a possible hardware sensor fault
-						this.getLogger().info(
-								"Possible hardware sensor problem for sensor: "
-										+ farDistanceSensor.getProperty(Vocabulary.name).getString());
-						// TODO create observation
-						this.getLogger().warning("Ahora tienes que crear la observación");
+						try {
+							this.getLogger().info(
+									"Possible hardware sensor problem for sensor: "
+											+ farDistanceSensor.getProperty(Vocabulary.name).getString());
+							// TODO create observation
+							this.getLogger().warning("Ahora tienes que crear la observación");
+						} catch (NullPointerException e) {
+							this.getLogger().warning("Impossible to break the tie for a possible failure node.");
+						}
 					} else {
 						this.targetZones.put(step, copy);
 					}
@@ -825,8 +908,12 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 
 	/**
 	 * @param incomingMessages
+	 * @return
 	 */
-	private void discoverLostMessages(List<Individual> incomingMessages) {
+	private List<Individual> discoverLostMessages(List<Individual> incomingMessages) {
+
+		List<Individual> lostMessagesDiscovered = new ArrayList<Individual>();
+
 		for (Individual msg : this.incomingMsgs) {
 			long msgID = msg.getProperty(Vocabulary.msgCounter).getLong();
 			String sender = msg.getProperty(Vocabulary.isSentBy).getProperty(Vocabulary.name).getString();
@@ -834,9 +921,7 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 
 			// Check last message received -> Discover lost messages
 			if (!this.lastKnownMsgs.containsKey(sender)) {
-				if (msgID == 0) {
-					this.lastKnownMsgs.put(sender, msgID);
-				} else if (msgID != 0) {
+				if (msgID != 0) {
 					this.getLogger().warning(
 							"Lost message found. First message received from " + sender + " with id: " + msgID);
 					for (int i = 0; i < msgID; i++) {
@@ -848,14 +933,12 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 						// ontMsg.addProperty(Vocabulary.timemstamp,
 						// model.createTypedLiteral(step));
 						ontMsg.addProperty(Vocabulary.isSentBy, sensor);
-						this.lastKnownMsgs.put(sender, (long) i);
+						lostMessagesDiscovered.add(ontMsg);
 					}
 				}
 			} else {
 				long lastId = this.lastKnownMsgs.get(sender);
-				if (msgID == lastId + 1) {
-					this.lastKnownMsgs.put(sender, msgID);
-				} else if (msgID > lastId + 1) {
+				if (msgID > lastId + 1) {
 					this.getLogger().warning(
 							"Lost message found. Last message received from " + sender + " with id: " + msgID);
 					for (long i = (lastId + 1); i < msgID; i++) {
@@ -867,11 +950,15 @@ public class ZigBeeCoordiantorNodeSoftware extends SimpleShanksAgent {
 						// ontMsg.addProperty(Vocabulary.timemstamp,
 						// model.createTypedLiteral(step));
 						ontMsg.addProperty(Vocabulary.isSentBy, sensor);
-						this.lastKnownMsgs.put(sender, (long) i);
+						lostMessagesDiscovered.add(ontMsg);
 					}
 				}
 			}
+			// Set last known msgs in any case
+			this.lastKnownMsgs.put(sender, msgID);
 		}
+
+		return lostMessagesDiscovered;
 	}
 
 	/**

@@ -60,6 +60,7 @@ public class Vocabulary {
 	public static final Resource ZigBeeMessage = m_model.createResource(diagnosisNS + "ZigBeeMessage");
 	public static final Resource LostMessage = m_model.createResource(diagnosisNS + "LostMessage");
 	public static final Resource BaseStation = m_model.createResource(wsnNdlNS + "ZigBeeBaseStation");
+	public static final Resource ZigBeeRouter = m_model.createResource(wsnNdlNS + "ZigBeeRouter");
 	public static final Resource MicaZ = m_model.createResource(wsnNdlNS + "MicaZ");
 	public static final Resource Location = m_model.createResource(nmlBaseNS + "Location");
 	public static final Resource Cpu = m_model.createResource(wsnNdlNS + "ATmega128L");
