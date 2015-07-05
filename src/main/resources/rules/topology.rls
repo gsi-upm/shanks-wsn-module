@@ -13,17 +13,27 @@ http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#ZigBeeRouter
 ---
 CONSTRUCT {
     ?cluster a wsn-ndl:Cluster .
-    ?cluster nml-base:hasLink ?link .
-    ?cluster nml-base:hasNode ?node .
     ?cluster nml-base:hasNode ?this .
 }
 WHERE {
     ?this a wsn-ndl:ZigBeeRouter .
     ?this nml-base:name ?name .
+    BIND (URI(CONCAT("http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#cluster-", ?name)) AS ?cluster) .
+}
+---
+http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#ZigBeeRouter
+---
+CONSTRUCT {
+    ?cluster nml-base:hasLink ?link .
+    ?cluster nml-base:hasNode ?node .
+}
+WHERE {
+    ?this a wsn-ndl:ZigBeeRouter .
+    ?cluster a wsn-ndl:Cluster .
+    ?cluster nml-base:hasNode ?this .
     ?this nml-base:isSink ?link .
     ?link a wsn-ndl:SensorLink .
     ?node nml-base:isSource ?link .
-    BIND (URI(CONCAT("http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#cluster-", ?name)) AS ?cluster) .
 }
 ---
 http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#ZigBeeRouter
