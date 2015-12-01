@@ -48,8 +48,8 @@ public class Vocabulary {
 	/**
 	 * The namespaces of the vocabulary as a string
 	 */
-	public static final String diagnosisNS = "http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#";
-	public static final String wsnNdlNS = "http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#";
+	public static final String diagnosisNS = "http://www.gsi.dit.upm.es/ontologies/b2d2/diagnosis/ns#";
+	public static final String wsnNdlNS = "http://www.gsi.dit.upm.es/ontologies/b2d2/wsn/ns#";
 	public static final String nmlBaseNS = "http://schemas.ogf.org/nml/2013/05/base#";
 	public static final String indlNS = "http://www.science.uva.nl/research/sne/indl#";
 
@@ -57,8 +57,8 @@ public class Vocabulary {
 	 * Resource for Ontology Classes
 	 */
 	// Resources for hardware description
-	public static final Resource ZigBeeMessage = m_model.createResource(diagnosisNS + "ZigBeeMessage");
-	public static final Resource LostMessage = m_model.createResource(diagnosisNS + "LostMessage");
+	public static final Resource ZigBeeMessage = m_model.createResource(wsnNdlNS + "ZigBeeMessage");
+	public static final Resource LostMessage = m_model.createResource(wsnNdlNS + "LostMessage");
 	public static final Resource BaseStation = m_model.createResource(wsnNdlNS + "ZigBeeBaseStation");
 	public static final Resource ZigBeeRouter = m_model.createResource(wsnNdlNS + "ZigBeeRouter");
 	public static final Resource MicaZ = m_model.createResource(wsnNdlNS + "MicaZ");
@@ -91,6 +91,7 @@ public class Vocabulary {
 	public static final Property contains = m_model.createProperty(wsnNdlNS + "contains");
 	public static final Property executesIn = m_model.createProperty(wsnNdlNS + "executesIn");
 	public static final Property hosts = m_model.createProperty(wsnNdlNS + "hosts");
+	public static final Property isNotReceivedBy = m_model.createProperty(wsnNdlNS + "isNotReceivedBy");
 	public static final Property isReceivedBy = m_model.createProperty(wsnNdlNS + "isReceivedBy");
 	public static final Property isSentBy = m_model.createProperty(wsnNdlNS + "isSentBy");
 	public static final Property receives = m_model.createProperty(wsnNdlNS + "receives");
