@@ -11,24 +11,27 @@
     <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
     <!ENTITY indl "http://www.science.uva.nl/research/sne/indl#" >
     <!ENTITY b2d2-wsn "http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#" >
+    <!ENTITY b2d2-diag "http://www.gsi.dit.upm.es/ontologies/b2d2/diagnosis#" >
 ]>
 
 
 <rdf:RDF xmlns="http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#"
      xml:base="http://www.gsi.dit.upm.es/ontologies/b2d2/wsn"
-     xmlns:indl="http://www.science.uva.nl/research/sne/indl#"
-     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
-     xmlns:nml-base="http://schemas.ogf.org/nml/2013/05/base#"
-     xmlns:sp="http://spinrdf.org/sp#"
-     xmlns:owl="http://www.w3.org/2002/07/owl#"
-     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
      xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:b2d2-wsn="http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#"
      xmlns:spin="http://spinrdf.org/spin#"
-     xmlns:b2d2-wsn="http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#">
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:indl="http://www.science.uva.nl/research/sne/indl#"
+     xmlns:b2d2-diag="http://www.gsi.dit.upm.es/ontologies/b2d2/diagnosis#"
+     xmlns:nml-base="http://schemas.ogf.org/nml/2013/05/base#"
+     xmlns:sp="http://spinrdf.org/sp#">
     <owl:Ontology rdf:about="http://www.gsi.dit.upm.es/ontologies/b2d2/wsn">
         <owl:imports rdf:resource="http://spinrdf.org/spin"/>
         <owl:imports rdf:resource="http://topbraid.org/spin/owlrl"/>
         <owl:imports rdf:resource="http://topbraid.org/spin/owlrl-all"/>
+        <owl:imports rdf:resource="http://www.gsi.dit.upm.es/ontologies/b2d2/diagnosis"/>
         <owl:versionIRI rdf:resource="http://www.gsi.dit.upm.es/ontologies/b2d2/wsn/0.1.0"/>
         <owl:imports rdf:resource="http://www.science.uva.nl/research/sne/indl"/>
     </owl:Ontology>
@@ -50,7 +53,6 @@
 
     <owl:ObjectProperty rdf:about="&b2d2-wsn;affects">
         <rdfs:range rdf:resource="&nml-base;NetworkObject"/>
-        <rdfs:domain rdf:resource="&b2d2-wsn;Fault"/>
     </owl:ObjectProperty>
     
 
@@ -58,8 +60,8 @@
     <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#contains -->
 
     <owl:ObjectProperty rdf:about="&b2d2-wsn;contains">
-        <rdfs:range rdf:resource="&b2d2-wsn;Message"/>
         <rdfs:domain rdf:resource="&b2d2-wsn;Message"/>
+        <rdfs:range rdf:resource="&b2d2-wsn;Message"/>
     </owl:ObjectProperty>
     
 
@@ -68,7 +70,6 @@
 
     <owl:ObjectProperty rdf:about="&b2d2-wsn;executesIn">
         <rdfs:range rdf:resource="&nml-base;Node"/>
-        <rdfs:domain rdf:resource="&b2d2-wsn;Software"/>
     </owl:ObjectProperty>
     
 
@@ -87,17 +88,13 @@
 
     <owl:ObjectProperty rdf:about="&b2d2-wsn;hasFault">
         <rdfs:domain rdf:resource="&nml-base;NetworkObject"/>
-        <rdfs:range rdf:resource="&b2d2-wsn;Fault"/>
     </owl:ObjectProperty>
     
 
 
     <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#hasHypothesis -->
 
-    <owl:ObjectProperty rdf:about="&b2d2-wsn;hasHypothesis">
-        <rdfs:domain rdf:resource="&b2d2-wsn;Diagnosis"/>
-        <rdfs:range rdf:resource="&b2d2-wsn;Hypothesis"/>
-    </owl:ObjectProperty>
+    <owl:ObjectProperty rdf:about="&b2d2-wsn;hasHypothesis"/>
     
 
 
@@ -113,10 +110,7 @@
 
     <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#hasObservation -->
 
-    <owl:ObjectProperty rdf:about="&b2d2-wsn;hasObservation">
-        <rdfs:domain rdf:resource="&b2d2-wsn;Diagnosis"/>
-        <rdfs:range rdf:resource="&b2d2-wsn;Observation"/>
-    </owl:ObjectProperty>
+    <owl:ObjectProperty rdf:about="&b2d2-wsn;hasObservation"/>
     
 
 
@@ -144,7 +138,6 @@
 
     <owl:ObjectProperty rdf:about="&b2d2-wsn;hosts">
         <rdfs:domain rdf:resource="&nml-base;Node"/>
-        <rdfs:range rdf:resource="&b2d2-wsn;Software"/>
         <owl:inverseOf rdf:resource="&b2d2-wsn;executesIn"/>
     </owl:ObjectProperty>
     
@@ -154,8 +147,15 @@
 
     <owl:ObjectProperty rdf:about="&b2d2-wsn;isAffectedBy">
         <rdfs:domain rdf:resource="&nml-base;NetworkObject"/>
-        <rdfs:range rdf:resource="&b2d2-wsn;Fault"/>
         <owl:inverseOf rdf:resource="&b2d2-wsn;affects"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#isNotReceivedBy -->
+
+    <owl:ObjectProperty rdf:about="&b2d2-wsn;isNotReceivedBy">
+        <rdfs:range rdf:resource="&b2d2-wsn;LostMessage"/>
     </owl:ObjectProperty>
     
 
@@ -172,7 +172,6 @@
     <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#isReceivedBy -->
 
     <owl:ObjectProperty rdf:about="&b2d2-wsn;isReceivedBy">
-        <rdfs:domain rdf:resource="&b2d2-wsn;Actor"/>
         <rdfs:range rdf:resource="&b2d2-wsn;Message"/>
         <owl:inverseOf rdf:resource="&b2d2-wsn;receives"/>
     </owl:ObjectProperty>
@@ -183,7 +182,6 @@
 
     <owl:ObjectProperty rdf:about="&b2d2-wsn;isSentBy">
         <rdf:type rdf:resource="&owl;FunctionalProperty"/>
-        <rdfs:range rdf:resource="&b2d2-wsn;Actor"/>
         <rdfs:domain rdf:resource="&b2d2-wsn;Message"/>
         <owl:inverseOf rdf:resource="&b2d2-wsn;sends"/>
     </owl:ObjectProperty>
@@ -202,17 +200,13 @@
 
     <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#possibleFault -->
 
-    <owl:ObjectProperty rdf:about="&b2d2-wsn;possibleFault">
-        <rdfs:range rdf:resource="&b2d2-wsn;Fault"/>
-        <rdfs:domain rdf:resource="&b2d2-wsn;Hypothesis"/>
-    </owl:ObjectProperty>
+    <owl:ObjectProperty rdf:about="&b2d2-wsn;possibleFault"/>
     
 
 
     <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#receives -->
 
     <owl:ObjectProperty rdf:about="&b2d2-wsn;receives">
-        <rdfs:domain rdf:resource="&b2d2-wsn;Actor"/>
         <rdfs:range rdf:resource="&b2d2-wsn;Message"/>
     </owl:ObjectProperty>
     
@@ -221,8 +215,8 @@
     <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#resendMessage -->
 
     <owl:ObjectProperty rdf:about="&b2d2-wsn;resendMessage">
-        <rdfs:domain rdf:resource="&b2d2-wsn;Message"/>
         <rdfs:range rdf:resource="&b2d2-wsn;Message"/>
+        <rdfs:domain rdf:resource="&b2d2-wsn;Message"/>
     </owl:ObjectProperty>
     
 
@@ -231,7 +225,6 @@
 
     <owl:ObjectProperty rdf:about="&b2d2-wsn;sends">
         <rdf:type rdf:resource="&owl;InverseFunctionalProperty"/>
-        <rdfs:domain rdf:resource="&b2d2-wsn;Actor"/>
         <rdfs:range rdf:resource="&b2d2-wsn;Message"/>
     </owl:ObjectProperty>
     
@@ -384,24 +377,10 @@
     
 
 
-    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#Actor -->
-
-    <owl:Class rdf:about="&b2d2-wsn;Actor"/>
-    
-
-
-    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#Agent -->
-
-    <owl:Class rdf:about="&b2d2-wsn;Agent">
-        <rdfs:subClassOf rdf:resource="&b2d2-wsn;Software"/>
-    </owl:Class>
-    
-
-
     <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#AnalysisResult -->
 
     <owl:Class rdf:about="&b2d2-wsn;AnalysisResult">
-        <rdfs:subClassOf rdf:resource="&b2d2-wsn;Observation"/>
+        <rdfs:subClassOf rdf:resource="&b2d2-diag;Symptom"/>
     </owl:Class>
     
 
@@ -410,7 +389,7 @@
 
     <owl:Class rdf:about="&b2d2-wsn;B2D2Agent">
         <owl:equivalentClass rdf:resource="&b2d2-wsn;ZigBeeBaseStation"/>
-        <rdfs:subClassOf rdf:resource="&b2d2-wsn;Agent"/>
+        <rdfs:subClassOf rdf:resource="&b2d2-diag;Agent"/>
     </owl:Class>
     
 
@@ -426,21 +405,15 @@
     <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#CommunicationRoutingFault -->
 
     <owl:Class rdf:about="&b2d2-wsn;CommunicationRoutingFault">
-        <rdfs:subClassOf rdf:resource="&b2d2-wsn;Fault"/>
+        <rdfs:subClassOf rdf:resource="&b2d2-diag;Fault"/>
     </owl:Class>
-    
-
-
-    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#Diagnosis -->
-
-    <owl:Class rdf:about="&b2d2-wsn;Diagnosis"/>
     
 
 
     <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#EnvironmentFault -->
 
     <owl:Class rdf:about="&b2d2-wsn;EnvironmentFault">
-        <rdfs:subClassOf rdf:resource="&b2d2-wsn;Fault"/>
+        <rdfs:subClassOf rdf:resource="&b2d2-diag;Fault"/>
     </owl:Class>
     
 
@@ -453,31 +426,11 @@
     
 
 
-    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#Fault -->
-
-    <owl:Class rdf:about="&b2d2-wsn;Fault"/>
-    
-
-
     <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#HardwareFault -->
 
     <owl:Class rdf:about="&b2d2-wsn;HardwareFault">
-        <rdfs:subClassOf rdf:resource="&b2d2-wsn;Fault"/>
+        <rdfs:subClassOf rdf:resource="&b2d2-diag;Fault"/>
     </owl:Class>
-    
-
-
-    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#Human -->
-
-    <owl:Class rdf:about="&b2d2-wsn;Human">
-        <rdfs:subClassOf rdf:resource="&b2d2-wsn;Actor"/>
-    </owl:Class>
-    
-
-
-    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#Hypothesis -->
-
-    <owl:Class rdf:about="&b2d2-wsn;Hypothesis"/>
     
 
 
@@ -541,14 +494,14 @@
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="&indl;hasComponent"/>
-                <owl:onClass rdf:resource="&b2d2-wsn;ATmega128L"/>
+                <owl:onClass rdf:resource="&b2d2-wsn;MicaZMemory"/>
                 <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
             </owl:Restriction>
         </rdfs:subClassOf>
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="&indl;hasComponent"/>
-                <owl:onClass rdf:resource="&b2d2-wsn;MicaZMemory"/>
+                <owl:onClass rdf:resource="&b2d2-wsn;ATmega128L"/>
                 <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
             </owl:Restriction>
         </rdfs:subClassOf>
@@ -577,12 +530,6 @@
     <owl:Class rdf:about="&b2d2-wsn;NetworkCongestion">
         <rdfs:subClassOf rdf:resource="&b2d2-wsn;CommunicationRoutingFault"/>
     </owl:Class>
-    
-
-
-    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#Observation -->
-
-    <owl:Class rdf:about="&b2d2-wsn;Observation"/>
     
 
 
@@ -664,34 +611,10 @@
     
 
 
-    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#Software -->
-
-    <owl:Class rdf:about="&b2d2-wsn;Software">
-        <rdfs:subClassOf rdf:resource="&b2d2-wsn;Actor"/>
-    </owl:Class>
-    
-
-
     <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#StarTopology -->
 
     <owl:Class rdf:about="&b2d2-wsn;StarTopology">
         <rdfs:subClassOf rdf:resource="&nml-base;Topology"/>
-    </owl:Class>
-    
-
-
-    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#Symptom -->
-
-    <owl:Class rdf:about="&b2d2-wsn;Symptom">
-        <rdfs:subClassOf rdf:resource="&b2d2-wsn;Observation"/>
-    </owl:Class>
-    
-
-
-    <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#TestResult -->
-
-    <owl:Class rdf:about="&b2d2-wsn;TestResult">
-        <rdfs:subClassOf rdf:resource="&b2d2-wsn;Observation"/>
     </owl:Class>
     
 
@@ -788,13 +711,6 @@
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="&indl;hasComponent"/>
-                <owl:onClass rdf:resource="&indl;MemoryComponent"/>
-                <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
-            </owl:Restriction>
-        </rdfs:subClassOf>
-        <rdfs:subClassOf>
-            <owl:Restriction>
-                <owl:onProperty rdf:resource="&indl;hasComponent"/>
                 <owl:onClass rdf:resource="&indl;ProcessingComponent"/>
                 <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
             </owl:Restriction>
@@ -813,6 +729,13 @@
                 <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
             </owl:Restriction>
         </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="&indl;hasComponent"/>
+                <owl:onClass rdf:resource="&indl;MemoryComponent"/>
+                <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
+            </owl:Restriction>
+        </rdfs:subClassOf>
     </owl:Class>
     
 
@@ -820,11 +743,11 @@
     <!-- http://www.gsi.dit.upm.es/ontologies/b2d2/wsn#ZigBeeSoftware -->
 
     <owl:Class rdf:about="&b2d2-wsn;ZigBeeSoftware">
-        <rdfs:subClassOf rdf:resource="&b2d2-wsn;Software"/>
+        <rdfs:subClassOf rdf:resource="&b2d2-diag;Agent"/>
     </owl:Class>
 </rdf:RDF>
 
 
 
-<!-- Generated by the OWL API (version 3.5.0) http://owlapi.sourceforge.net -->
+<!-- Generated by the OWL API (version 3.5.1) http://owlapi.sourceforge.net -->
 
