@@ -69,7 +69,7 @@ public class WSNSimulationLauncher {
 		long[] seeds = new long[]{8245};
 		int[] sensors = new int[]{100};
 		int[] routers = new int[]{15};
-		int simid = 0;
+		int simid = 4;
 		
 
 
@@ -97,8 +97,8 @@ public class WSNSimulationLauncher {
 					scenarioProperties.put("SimID", Integer.toString(simid));
 					scenarioProperties.put("OutputFolder", outputFolder);
 					
-//					scenarioProperties.put(Scenario.SIMULATION_GUI, Scenario.SIMULATION_2D);
-					scenarioProperties.put(Scenario.SIMULATION_GUI, Scenario.NO_GUI);
+					scenarioProperties.put(Scenario.SIMULATION_GUI, Scenario.SIMULATION_2D);
+//					scenarioProperties.put(Scenario.SIMULATION_GUI, Scenario.NO_GUI);
 					// scenarioProperties.put(WSNScenario.RANDOM_SEED, "40");
 					scenarioProperties.put(WSNScenario.RANDOM_SEED, Long.toString(seed));
 					/**
@@ -108,7 +108,8 @@ public class WSNSimulationLauncher {
 					/**
 					 * Ontology URI
 					 */
-					scenarioProperties.put(WSNScenario.ONTOLOGY_URI, "src/main/resources/b2d2-wsn.owl");
+					scenarioProperties.put(WSNScenario.ONTOLOGY_URI, "http://www.gsi.dit.upm.es/ontologies/b2d2/wsn/ns");
+//					scenarioProperties.put(WSNScenario.ONTOLOGY_URI, "src/main/resources/b2d2-wsn.owl");
 					/**
 					 * Number of sensors in the simulation
 					 */
