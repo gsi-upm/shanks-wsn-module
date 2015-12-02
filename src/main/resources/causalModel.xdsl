@@ -1,203 +1,177 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <smile version="1.0" id="Network1" numsamples="1000" discsamples="10000">
 	<nodes>
-		<cpt id="Hardware_Sensor">
-			<state id="True" />
-			<state id="False" />
-			<probabilities>0.5 0.5</probabilities>
+		<cpt id="isRouterNode">
+			<state id="YES" />
+			<state id="NO" />
+			<probabilities>0.1 0.9</probabilities>
 		</cpt>
-		<cpt id="Hardware_Processor">
-			<state id="True" />
-			<state id="False" />
-			<probabilities>0.5 0.5</probabilities>
+		<cpt id="ExpectedDetectionPrediction">
+			<state id="YES" />
+			<state id="NO" />
+			<probabilities>0.9 0.1</probabilities>
 		</cpt>
-		<cpt id="Hardware_Memory">
-			<state id="True" />
-			<state id="False" />
-			<probabilities>0.5 0.5</probabilities>
+		<cpt id="FaultRootCause" diagtype="target" ranked="true">
+			<state id="OverloadedNode" fault="true" />
+			<state id="SensingFault" fault="true" />
+			<state id="BadWeather" fault="true" />
+			<state id="HardwareFault" fault="true" />
+			<state id="AllOk" fault="true" />
+			<parents>isRouterNode ExpectedDetectionPrediction</parents>
+			<probabilities>0.3 0.001 0.05 0.05 0.5989999999999999 0.35 0.1 0.05 0.05 0.45 0.25 0.001 0.02 0.05 0.6789999999999999 0.15 0.1 0.05 0.05 0.6499999999999999</probabilities>
 		</cpt>
-		<cpt id="Lost_Msgs_Quantity">
-			<state id="State0" />
-			<state id="State1" />
-			<probabilities>0.5 0.5</probabilities>
+		<cpt id="LostPackage">
+			<state id="YES" />
+			<state id="NO" />
+			<parents>FaultRootCause</parents>
+			<probabilities>0.6 0.4 0.2 0.8 0.7 0.3 0.5 0.5 0.05 0.95</probabilities>
 		</cpt>
-		<cpt id="Path_Lost_Msgs_Quantity">
-			<state id="State0" />
-			<state id="State1" />
-			<probabilities>0.5 0.5</probabilities>
+		<cpt id="OtherLostPackagesInPath">
+			<state id="YES" />
+			<state id="NO" />
+			<parents>FaultRootCause isRouterNode</parents>
+			<probabilities>0.9 0.1 0.2 0.8 0.1 0.9 0.1 0.9 0.8 0.2 0.8 0.2 0.5 0.5 0.5 0.5 0.01 0.99 0.01 0.99</probabilities>
 		</cpt>
-		<cpt id="Processed_Msgs_Quantity">
-			<state id="State0" />
-			<state id="State1" />
-			<probabilities>0.5 0.5</probabilities>
+		<cpt id="GeneralLostPackagesInARegion">
+			<state id="YES" />
+			<state id="NO" />
+			<parents>FaultRootCause isRouterNode</parents>
+			<probabilities>0.1 0.9 0.01 0.99 0.05 0.95 0.05 0.95 0.9 0.1 0.9 0.1 0.5 0.5 0.5 0.5 0.001 0.999 0.001 0.999</probabilities>
 		</cpt>
-		<cpt id="Actions_Performed">
-			<state id="State0" />
-			<state id="State1" />
-			<probabilities>0.5 0.5</probabilities>
+		<cpt id="RegularAverageLoadLevel">
+			<state id="YES" />
+			<state id="NO" />
+			<parents>FaultRootCause</parents>
+			<probabilities>0.05 0.95 0.5 0.5 0.5 0.5 0.1 0.9 0.9 0.1</probabilities>
 		</cpt>
-		<cpt id="Env_SignalNoise">
-			<state id="True" />
-			<state id="False" />
-			<probabilities>0.5 0.5</probabilities>
+		<cpt id="RegularBaterryLevel">
+			<state id="YES" />
+			<state id="NO" />
+			<parents>FaultRootCause RegularAverageLoadLevel</parents>
+			<probabilities>0.85 0.15 0.4 0.6 0.8 0.2 0.4 0.6 0.7 0.3 0.4 0.6 0.15 0.85 0.05 0.95 0.9 0.1 0.9 0.1</probabilities>
 		</cpt>
-		<cpt id="Detection_Sensor_Data_NonReceived">
-			<state id="True" />
-			<state id="False" />
-			<probabilities>0.5 0.5</probabilities>
+		<cpt id="RadicalChangeInBatteryLevel">
+			<state id="YES" />
+			<state id="NO" />
+			<parents>FaultRootCause</parents>
+			<probabilities>0.2 0.8 0.3 0.7 0.6 0.4 0.85 0.15 0.05 0.95</probabilities>
 		</cpt>
-		<cpt id="Env_ExternalDamage">
-			<state id="True" />
-			<state id="False" />
-			<probabilities>0.5 0.5</probabilities>
+		<cpt id="RegularCPULevel">
+			<state id="YES" />
+			<state id="NO" />
+			<parents>FaultRootCause</parents>
+			<probabilities>0.1 0.9 0.5 0.5 0.5 0.5 0.3 0.7 0.9 0.1</probabilities>
 		</cpt>
-		<cpt id="Incoherent_Sensor_Data_Received">
-			<state id="True" />
-			<state id="False" />
-			<probabilities>0.5 0.5</probabilities>
+		<cpt id="FullMemory">
+			<state id="YES" />
+			<state id="NO" />
+			<parents>FaultRootCause</parents>
+			<probabilities>0.99 0.01 0.05 0.95 0.5 0.5 0.5 0.5 0.01 0.99</probabilities>
 		</cpt>
-		<cpt id="Outdated_Sensor_Data_Received">
-			<state id="True" />
-			<state id="False" />
-			<probabilities>0.5 0.5</probabilities>
-		</cpt>
-		<cpt id="Temperature_Hist">
-			<state id="High" />
-			<state id="Normal" />
-			<state id="Low" />
-			<probabilities>0.5 0.5 0</probabilities>
-		</cpt>
-		<cpt id="CPU_Load_Hist">
-			<state id="High" />
-			<state id="Normal" />
-			<state id="Low" />
-			<probabilities>0.5 0.5 0</probabilities>
-		</cpt>
-		<cpt id="Memory_Load_Hist">
-			<state id="High" />
-			<state id="Normal" />
-			<state id="Low" />
-			<probabilities>0.5 0.5 0</probabilities>
-		</cpt>
-		<cpt id="Comm_Routing_NetworkCongestion">
-			<state id="True" />
-			<state id="False" />
-			<probabilities>0.5 0.5</probabilities>
+		<cpt id="RegularMemoryLevel">
+			<state id="YES" />
+			<state id="NO" />
+			<parents>FaultRootCause FullMemory</parents>
+			<probabilities>0.05 0.95 0.4 0.6 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.8 0.2 0.8 0.2</probabilities>
 		</cpt>
 	</nodes>
 	<extensions>
 		<genie version="1.0" app="GeNIe 2.0.5219.0" name="Network1" faultnameformat="nodestate">
-			<node id="Hardware_Sensor">
-				<name>Hardware_Sensor</name>
+			<node id="LostPackage">
+				<name>LostPackage</name>
+				<interior color="ffff99" />
+				<outline color="000080" />
+				<font color="000000" name="Arial" size="8" />
+				<position>528 535 603 581</position>
+				<barchart active="true" width="128" height="64" />
+			</node>
+			<node id="OtherLostPackagesInPath">
+				<name>OtherLostPackagesInPath</name>
+				<interior color="ffff99" />
+				<outline color="000080" />
+				<font color="000000" name="Arial" size="8" />
+				<position>330 526 463 609</position>
+				<barchart active="true" width="128" height="64" />
+			</node>
+			<node id="GeneralLostPackagesInARegion">
+				<name>GeneralLostPackagesInARegion</name>
+				<interior color="ffff99" />
+				<outline color="000080" />
+				<font color="000000" name="Arial" size="8" />
+				<position>122 507 325 636</position>
+				<barchart active="true" width="128" height="64" />
+			</node>
+			<node id="FaultRootCause">
+				<name>FaultRootCause</name>
 				<interior color="e5f6f7" />
 				<outline color="000080" />
 				<font color="000000" name="Arial" size="8" />
-				<position>988 670 1089 733</position>
+				<position>399 384 487 439</position>
+				<barchart active="true" width="128" height="90" />
 			</node>
-			<node id="Hardware_Processor">
-				<name>Hardware_Processor</name>
-				<interior color="e5f6f7" />
+			<node id="isRouterNode">
+				<name>isRouterNode</name>
+				<interior color="ffffff" />
 				<outline color="000080" />
 				<font color="000000" name="Arial" size="8" />
-				<position>977 742 1102 813</position>
+				<position>233 262 309 309</position>
+				<barchart active="true" width="128" height="64" />
 			</node>
-			<node id="Hardware_Memory">
-				<name>Hardware_Memory</name>
-				<interior color="e5f6f7" />
+			<node id="ExpectedDetectionPrediction">
+				<name>ExpectedDetectionPrediction</name>
+				<interior color="ffffff" />
 				<outline color="000080" />
 				<font color="000000" name="Arial" size="8" />
-				<position>959 575 1123 639</position>
+				<position>498 264 601 328</position>
+				<barchart active="true" width="128" height="64" />
 			</node>
-			<node id="Env_SignalNoise">
-				<name>Env_SignalNoise</name>
-				<interior color="e5f6f7" />
+			<node id="RegularBaterryLevel">
+				<name>RegularBaterryLevel</name>
+				<interior color="ffff99" />
 				<outline color="000080" />
 				<font color="000000" name="Arial" size="8" />
-				<position>982 236 1088 276</position>
+				<position>701 535 776 581</position>
+				<barchart active="true" />
 			</node>
-			<node id="Env_ExternalDamage">
-				<name>Env_ExternalDamage</name>
-				<interior color="e5f6f7" />
+			<node id="RadicalChangeInBatteryLevel">
+				<name>RadicalChangeInBatteryLevel</name>
+				<interior color="ffff99" />
 				<outline color="000080" />
 				<font color="000000" name="Arial" size="8" />
-				<position>981 474 1093 544</position>
+				<position>813 504 962 597</position>
+				<barchart active="true" />
 			</node>
-			<node id="Incoherent_Sensor_Data_Received">
-				<name>Incoherent_Sensor_Data_Received</name>
-				<interior color="cc99ff" />
+			<node id="RegularCPULevel">
+				<name>RegularCPULevel</name>
+				<interior color="ffff99" />
 				<outline color="000080" />
 				<font color="000000" name="Arial" size="8" />
-				<position>277 125 451 177</position>
+				<position>988 530 1081 588</position>
+				<barchart active="true" />
 			</node>
-			<node id="Outdated_Sensor_Data_Received">
-				<name>Outdated_Sensor_Data_Received</name>
-				<interior color="cc99ff" />
+			<node id="RegularMemoryLevel">
+				<name>RegularMemoryLevel</name>
+				<interior color="ffff99" />
 				<outline color="000080" />
 				<font color="000000" name="Arial" size="8" />
-				<position>279 197 453 249</position>
+				<position>913 329 1023 397</position>
+				<barchart active="true" width="128" height="64" />
 			</node>
-			<node id="Temperature_Hist">
-				<name>Temperature_Hist</name>
-				<interior color="cc99ff" />
+			<node id="FullMemory">
+				<name>FullMemory</name>
+				<interior color="ffff99" />
 				<outline color="000080" />
 				<font color="000000" name="Arial" size="8" />
-				<position>290 752 464 804</position>
+				<position>932 425 1000 467</position>
+				<barchart active="true" width="128" height="64" />
 			</node>
-			<node id="CPU_Load_Hist">
-				<name>CPU_Load_Hist</name>
-				<interior color="cc99ff" />
+			<node id="RegularAverageLoadLevel">
+				<name>RegularAverageLoadLevel</name>
+				<interior color="ffffff" />
 				<outline color="000080" />
 				<font color="000000" name="Arial" size="8" />
-				<position>294 696 468 748</position>
-			</node>
-			<node id="Memory_Load_Hist">
-				<name>Memory_Load_Hist</name>
-				<interior color="cc99ff" />
-				<outline color="000080" />
-				<font color="000000" name="Arial" size="8" />
-				<position>289 807 463 859</position>
-			</node>
-			<node id="Comm_Routing_NetworkCongestion">
-				<name>Comm_Routing_NetworkCongestion</name>
-				<interior color="e5f6f7" />
-				<outline color="000080" />
-				<font color="000000" name="Arial" size="8" />
-				<position>946 383 1142 434</position>
-			</node>
-			<node id="Detection_Sensor_Data_NonReceived">
-				<name>Detection_Sensor_Data_NonReceived</name>
-				<interior color="cc99ff" />
-				<outline color="000080" />
-				<font color="000000" name="Arial" size="8" />
-				<position>279 46 453 98</position>
-			</node>
-			<node id="Lost_Msgs_Quantity">
-				<name>Lost_Msgs_Quantity</name>
-				<interior color="cc99ff" />
-				<outline color="000080" />
-				<font color="000000" name="Arial" size="8" />
-				<position>126 420 300 472</position>
-			</node>
-			<node id="Path_Lost_Msgs_Quantity">
-				<name>Path_Lost_Msgs_Quantity</name>
-				<interior color="cc99ff" />
-				<outline color="000080" />
-				<font color="000000" name="Arial" size="8" />
-				<position>120 489 294 541</position>
-			</node>
-			<node id="Processed_Msgs_Quantity">
-				<name>Processed_Msgs_Quantity</name>
-				<interior color="cc99ff" />
-				<outline color="000080" />
-				<font color="000000" name="Arial" size="8" />
-				<position>120 562 294 614</position>
-			</node>
-			<node id="Actions_Performed">
-				<name>Actions_Performed</name>
-				<interior color="cc99ff" />
-				<outline color="000080" />
-				<font color="000000" name="Arial" size="8" />
-				<position>318 316 492 368</position>
+				<position>896 234 1033 319</position>
+				<barchart active="true" width="128" height="64" />
 			</node>
 		</genie>
 	</extensions>
